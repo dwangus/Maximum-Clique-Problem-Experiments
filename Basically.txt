@@ -1,0 +1,86 @@
+Basically, the thought is this:
+In the graph, take two nodes that are not connected, and that have dissimilar
+number of exclusive connections (AKA not equal number of exclusive connections).
+The node that has the lesser number of exclusive connections/edges gets
+merged with the the node with the greater number. Any mutually shared
+connections/edges are retained, but all those connections that the lesser
+node had that the greater node did not are cut off from the merged node.
+However, this merged node and all cut-off nodes from the lesser node now
+all have tags (I call them "Repulsion Tags" or RT's) that say they can 
+never be merged together. All subsequent merged nodes containing this 
+merged node cannot merge with any of these cut-off nodes either, nor can
+it merge with any of the resultant merged nodes that include these cut-off 
+nodes. (It may be the case that two merged nodes that already share an edge
+have RT's for each other -- this is fine, they just can't be merged in the 
+future case that their edge is somehow deleted)
+
+Repeat the merging process until no more nodes can be merged.
+Does simply the number of nodes in the final-reduced graph = the largest clique number?
+Or can you arrive at a scenario where you have not arrived at the answer/there are 
+leftover merged nodes that can't be merged any further (AKA you've arrived at
+an answer that is > the actual answer)?
+
+Does induction work here -- AKA, can I prove that, if in one iteration of this
+algorithm, assuming a brand-new graph with no RT's yet placed, for every graph,
+that the "essential information" of the solution to a particular graph is unchanged
+in reducing it by one node?
+Or maybe... can I prove that in no case, off any graph consisting of one single
+clique of size k, "building off" of that graph with any number of nodes and edges
+not creating any clique of greater size than k, does it escape complete reduction 
+by my algorithm?
+
+...In this case, what can even be considered a "wrong" move or step forward by
+my "random" algorithm? You can only really analyze the end number if it's right
+or not...
+
+Equals symmetry case when two 6-cliques separated; 
+Continue merging a single node until you can't anymore for that node 
+(because if random, could have a 5-clique vs. a 4-clique and 3-clique 
+sharing a node that can output 6); 
+Other problem with round robin scheduling and my algorithm for that long long ago...
+
+Algorithm:
+(you could probably implement the RT's and adjacency lists via hash tables)
+	- Maintain a list H of all nodes in the graph thus far
+		(each node in the graph H has an easily-accessible number
+			containing the length of their adjacency lists (or
+			their "degree" of neighbors))
+		(each node in H maintains a list of "RT's" for each node they
+			cannot be merged with)
+	- Sort all nodes in H by size of adjacency lists in descending order
+	- For each node in H, let's call each node A:
+		- Compare the node's degree to all other nodes afterwards in the list, let's call
+			each node B:
+			- If a) their degree is >= and b) A's RT-list does not
+				contain B and c) B is not in A's adjacency list: (>= won't matter if
+					we're always sorting)
+				- For each node X in B's adjacency list not in A's adjacency list:
+					- Append to X's RT-list node A (optional)
+					- Append to A's RT-list node X
+				- For each node Y in B's adjacency list:
+					- Remove B from Y's adjacency list
+					- Update Y's length
+				- Remove B from H
+		- Sort again by degree
+	- Return length of H
+
+Nope, doesn't work.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

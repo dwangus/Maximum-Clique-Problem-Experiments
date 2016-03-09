@@ -1,0 +1,81 @@
+Try, instead, thinking about both a graph and its graph complement simultaneously.
+If you solve the max clique in one graph, you've solved the max independent set in its
+complement. If you try to reduce a graph's complexity by transforming it into a more
+interconnected form of itself, then simultaneously for its graph complement, you must be
+trying to transform it into a more isolated form of itself.
+
+What "valid" moves/reductions can you define for yourself?
+
+...Other than just short of having n points able to simultaneously react with each other...
+
+I think it's more like this -- the moment you try to ascertain greater information about the 
+original graph (that's what reduction of complexity is), you can immediately come up with a
+counter-graph in which your information is no longer accurate. And that's the whole problem
+-- you inherently are without information about the structure of the graph. Structure implies
+information, yet you have none. How can you go from complete chaos to order in incremental steps, 
+without instead just gradually ascertaining information about your current circumstantial instance, 
+rather, then, implying that principles of order intrinsically underlie chaos as a whole?
+For the maximum independent set or maximum clique, it's necessary to ask this: do all graphs
+obey some inherent structure?
+
+...what if you define operations and definitions on graphs with "partial" edges (a value between
+0 and 1), and then translate regular graphs somehow into that?
+
+HUH... that's interesting... no matter what order I run my test4.py in, it always comes out to 57
+for this particular graph...
+But no, it runs with slightly different values given c250 (98 vs. 97) and c500 (184 vs. 176)
+(Although it's able to get the exact right answer for frb30-15-1 though :D)
+
+Next ideas:
+- Merge with all nodes possible that you are not connected with, and then, if any of your neighbors
+	are unconnected, merge with a neighbor (this is a shot in the dark, based purely on
+	probability, but hey, whatever)
+- Do like you did with the circle and the edge-intersections, except this time, you calculate the
+	rate of change for a particular node, going from right to left and left to right in the
+	number of edge intersections "caught" -- and then compare that with all other nodes in the
+	graph, (based on all the same ordering -- because at a high enough n and k, should be, most
+	likely, evenly dispersed across the circle), to see if there are any distinct similarities
+	- Hmm... the "rate of change"...
+- HMMM... if I implement my test4.py algorithm on its COMPLEMENT, I get an independent set...
+	- If I can identify unique independent sets in a graph, I can merge them in the original 
+		graph... right!? And as such, that reduces the original graph's complexity!
+	- Holy shit, observe the property that all members of a maximal clique are each independent
+		members of individual maximal independent sets!
+	- This perhaps won't solve it (as you can possibly get the chance that you merge a maximal 
+		independent set that does not include any member of the maximum clique, but also
+		thereby merges several nodes together into one that is connected to all members
+		of the maximum clique -- thereby off-setting your accuracy by -1), but it does
+		improve upon my previous algorithm (as one that correctly guesses a tighter upper
+		bound on the maximum clique) by a whole lot
+			- (And also slightly more importantly, with each maximal independent set found
+				on the graph's complement, we now have an accurate "counter" in
+				"batches merged" for how off we are from above the maximum clique number
+				we could be -- that is, each time we merge a batch, we up the counter
+				of how off we might be from the maximum clique by 1)
+				- (Shit, that's important! It also provides a tighter lower bound as well!)
+					- (That also provides a means for sample testing -- that is, 
+						running the algorithm slightly differently to produce
+						slightly different bounds, and increasing the tightness
+						of the actual bounds based on the overlap between the two
+						tests!)
+			- http://www.dsi.unive.it/~srotabul/files/publications/LION2009.pdf p.13
+			- http://www.sciencedirect.com/science/article/pii/S0166218X02003864 look at the table
+			- And I guess, if we REALLY wanted to be anal about it (as accurate as we could
+				possibly be), we could run the "maximal independent set" algorithm
+				on every node in the graph's complement, and only select the largest 
+				maximal independent set we find (the higher the probability it contains
+				one of the maximum clique) -- for a run-time of O(n^2)
+				- And, I guess, if we wanted to be the absolute most anal about it, we
+					could run this process for each closed neighborhood of every
+					node, and eliminate those whose bounds fall strictly outside
+					of the bounds we've calculated for the overall graph
+- Look at 12/20?
+
+
+
+
+
+
+
+
+

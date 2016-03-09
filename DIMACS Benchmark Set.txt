@@ -1,0 +1,4 @@
+http://iridia.ulb.ac.be/~fmascia/maximum_clique/
+
+"The maximum clique problem was the subject of an implementation challenge sponsored by DIMACS in 1992–1993,
+ and a collection of graphs used as benchmarks for the challenge is publicly available."
