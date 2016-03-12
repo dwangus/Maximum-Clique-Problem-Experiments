@@ -71,6 +71,191 @@ Next ideas:
 					of the bounds we've calculated for the overall graph
 - Look at 12/20?
 
+- The problem is hard because there's no exclusive nature to any solution you find, and therefore, no way
+	of determining whether the solution you find is the most optimal -- you might have found only part
+	of the optimal solution, but you don't know which part or even if you have any part.
+- And it's also weird -- if you derive an algorithm that only returns the number of the highest clique, 
+	w/o labeling which nodes specifically to check, you can determine whether or not it works by
+	using it to determine the number of the highest clique within the closed neighborhoods of every
+	node in the graph -- thereby having an algorithm that "proves" itself...
+
+- Also, try thinking about... utilizing the above bounds as a "test-experiment" -- that is, try inserting
+	an edge into the graph for a particular node, and keep inserting the missing edges for that same
+	node, each time running the above "test-experiment" to see if any bounds change... and, from that
+	information, seeing if you're able to tell anything conclusive about that one node...
+	- ...If you keep inserting edges for a specific node (one that's not connected to all nodes in the
+		graph)... after a certain point, shouldn't the bounds increase by one? (let's say, for
+		thought's sake, that deterministically it does:) (this all, by the way, depends on
+		your process of selecting a maximal independent set to merge being very methodical
+		and unchanged... in order for this to be a "true" experiment with all other variables
+		held constant... which means, for a given node, let's call it the "insertion variable 
+		node", you have to begin selecting maximal independent sets from one of their neighbors -- 
+		as that means the insertion-variable-node would not be a part of the maximal independent
+		set you're currently creating)
+		- (The methodical nature should be as follows: keep a list of your insertion-variable-node's
+			original neighbors. Sort this list according to some consistent order. For each 
+			neighbor X, do the following: select X as the first node to be used in your maximal
+			independent set algorithm. Merge the set of nodes you build. Continue until X is
+			connected to every node in the graph. Use the next node in the list not already
+			connected to every node in the graph.)
+			- (Also, then, if the graph edge density is greater than 0.5... then if you pick the 
+				node with the highest degree as your insertion-variable-node, and you run this 
+				method through to completion, you'll most likely end up with a graph that
+				has only your insertion-variable-node left with all un-inserted edges in the 
+				resulting graph, if not a completely connected graph by the end)
+				- Meaning you should also keep count of all your insertion-variable-node's
+					"un-neighbors", sort it, and if a node of the "neighbors" list
+					wants to merge with one of the "un-neighbors" list, then it does so
+					according to the ordering in the "un-neighbors" list
+					- It's all about keeping this method rigorous and consistent
+		- a) In the event that the bounds don't increase... then this node that you're inserting
+			edges into would be one of the maximum clique, right? (the upper bound, that is)
+		- b) In the event that the bounds increase by 1 after connecting your node with a very specific
+			node, that very specific node would be one of the maximum clique, right? (because
+			that would have had to mean all previous inserted edges must have, in whole or in 
+			part, contained all other members of the maximum clique -- and that you're only now
+			just connecting this insertion-variable-node with every member of the maximum
+			clique) (again, the upper bound increasing by 1, that is)
+		- In either of these a or b cases, just deterministically knowing ONE particular member of the 
+			maximum clique allows you to recursively apply the algorithm to just that member's 
+			closed neighborhood -- because their closed neighborhood cannot contain a clique
+			of greater size than k-1 (although the closed neighborhood can definitely contain
+			multiple cliques of exactly size k-1)
+	- Ok, SO! 
+	Step 1: Modify your "bounds" algorithm such that, for a given node, it picks one of its neighbors
+		and steps through the maximal-independent-set-&-merge part in a pre-defined way
+		- For the "pre-defined" way, it'd be helpful in debugging if it printed out which nodes
+			were being merged each time
+		- Also, as a note, sorting the neighbors list by their degree might be a good idea (and then
+			either picking the most or least connected one in that sorted list), as inserting
+			edges into the insertion-variable-node doesn't affect their degrees
+	Step 2: Implement your new "bounds" algorithm
+	Step 3: Given a particular node in a particular graph, run your algorithm iteratively as you 
+		continually insert more edges into that particular node, printing out the resultant bounds
+	Step 4: Try to see if the upper bound ever changes by 1, or, if by the end when your particular node is 
+		connected to every other node, the upper bound doesn't change at all -- and more importantly, 
+		given your printing of merged nodes each time, try to see if the steps are ever varied between
+		each iteration
+		- Or maybe, it's the "range" between the upper and lower bounds that should change...
+	(optionally) Step 5: If all goes well up to step 4, then use your algorithm to recursively look at
+		and identify unique members of the maximum clique, each time looking at the sub-closed-
+		neighborhood-graphs of the previously added unique member
+	Step 6: Output the size of the set you've accumulated. Compare to known max-clique numbers in 
+		benchmark graphs.
+
+	Step 1 Elaboration: (and this is ALL under the assumption that the max clique is unique in a particular graph)
+		- (Ok, first thing to note: I can tell that my "methodical-bounds" algorithm (MB-A) fits the 
+		description if, for each node in the graph, for each of its "un-neighbors" gradually inserted, 
+		that the list of bounds returned for each node matched with incrementally more of respectively 
+		each of their "un-neighbors" only either differs by one internally or not at all.)
+		
+		- So... if I pick a neighbor that both the IVN and its NN ("new neighbor" -- the node that is
+		connected in this round) share, as the beginning node to my MISAM (maximal independent set and
+		merge) algorithm, then I safely know that, in this iteration of MISAM, nothing remains unchanged
+		between when IVN-NoN (Not neighbor) and IVN-NN.
+			- Even so, MB-A won't necessarily have finished. Therefore, furthermore, either one of two 
+				things can happen next for MB-A to run to completion:
+				a) IVN and NN share more neighbors to start MISAM with
+				- We can simply exhaust this list
+				b) They share no more neighbors that have "un-connections" to other nodes in the graph
+				- ...What to do in this case?
+				- Wait... that would have to mean... there exists no other maximal independent set
+				in the reduced graph that does not at least include one or both of them.
+				- In that case, one can simply choose to apply to MISAM to the maximal independent set
+				created by first adding the IVN, and then in reverse order starting from the end, the
+				last un-neighbor in the scheduled list to be added, explicitly not adding the NN
+				until either a) they are the last node in the graph to be merged and are part of this
+				created MIS, or b) their MIS's are the last to exist.
+					- (INTRINSICALLY IMPRECISE -- THIS IS WHERE MY MISAM WOULD MOST LIKELY FALL APART
+						IN THE SCHEME OF THINGS)
+		- (Regardless, at the very end, we simply merge IVN with all its leftover un-neighbors as the final
+			step in the MISAM and MB-A)
+		- And then, even more so and in difficult fashion, we have to find a MISAM algorithm that runs
+			exactly the same and produces the same bounds for ALL increments of IVN-NN for each "un-neighbor"
+			- Mm... well, not exactly. If IVN has original degree of e, and inserting a new edge e + 1
+			proves (without having e = n - 1) that both produce the same bounds using a particular MISAM,
+			then for e + 2, if you can find a particular MISAM that produces the same exact bounds as 
+			when comparing e vs. e + 1, then you only need compare e + 1 vs. e + 2, rather than e + 2 
+			vs. e and e + 1 cases.
+
+		- (WAIT NO -- ALSO, I can check my MB-A + MISAM by determining if either condition holds true:
+			1) a) For a particular node, if their bounds register, after each increment, as constant
+				even when they're connected, then that means that they'd be "one of the max clique"
+			   b) Therefore, if you were to pick a node NOT connected to that previous particular node,
+				performing the MB-A would show that, once connected to that previous particular node,
+				their bounds would increase by 1
+			2) a) For a node, if their bounds register an increase of 1 after connecting to a
+				particular node, then that particular node would be one of the max clique
+			   b) Therefore, if you were to test the bounds of that particular node, and it did not register
+				an increment even after it's fully connected to all other nodes in the graph, then
+				it would be a member of the max clique in the graph
+			)
+		- (The same can be said that, if you take any 3+ maximal independent set, and each of them independently 
+			produces the same bounds, and then each in independent experiments, you fully connect each one
+			to the rest of the graph, and all of them increment up their bounds by 1, then none of them
+			belong to the max clique. (or if one of them does not increment their bounds at all, then you
+			know that that one is part of the max clique))
+		- Suggestion Alpha: (And even further, the same can be said that if you take a node out of the graph and calculate the
+			bounds, and they're the exact same, then they're not part of the max clique)
+			- WAIT, going with this specific suggestion (alpha)...
+			- Take a particular graph. Pick a node to test. All neighbors of that node are first fed into the
+			MISAM algorithm, then the test-node w/ its remaining un-neighbors to calculate a specific bound B.
+				(need a procedure for if their neighbor can merge with their un-neighbor, and if there are 
+				multiple MIS's with the test-node and its un-neighbors, what to do then)
+				(oh, and also, remember all merged MIS's -- makes for the "copy" part in calculating B' faster)
+				(no, in fact, all you need to do is -- when it gets to that point -- make a copy of the graph and
+				experiment with the bounds when you leave the node in and when you don't)
+			- Take that node out of the graph. Repeat the algorithm to calculate a specific bound B'.
+			- If B = B', take that node out of the graph and repeat.
+			- Else, if B != B', pick another test-node you haven't yet tested and repeat.
+			- If all nodes have been explored and the reduced graph is a clique, print the length of that clique
+			- Else, if all nodes have been explored but the reduced graph is not a clique, remove one node that is
+			not fully connected to all others and start the algorithm all over again.
+
+		- Take suggestion alpha into consideration for the following: (again, assuming only one max clique)
+			- Take a maximal independent set of size 3+ in the graph (let's call the set's size k)
+			- Select two of the MIS to be test-nodes
+			- For the first test node:
+				- Run the experiment of suggestion alpha (with the test node taken OUT of the graph) up until the 
+				point where you have no choice but to merge the test-node with other un-neighbors -- store this 
+				graph as graph H
+				- For all other nodes in the MIS, with them taken out of the full graph, theoretically it should
+				be possible to transform at least k-1 of them into a graph with identical structure as that of graph H 
+				(if none of k-1 of them are able to, then you should be able to do so by running all this again with the 
+				second test node)
+					- How to transform though?
+				- In that case, you can take those k-1 or k number of them and remove them from the graph
+		***- Seeing as how I can't come to any exact algorithm (even though my suggestion alpha would work a startlingly high
+			percentage of the time), what I can do is this:
+			- For each node in the graph, when it comes down to experimenting w/ bounds, if B == B', but for some reason,
+			the difference in merging of MIS's was... "ambiguous", then we can increment a running counter. By the end, 
+			we output the size of the reduced-graph-clique, along with a "+ counter" for the inaccuracies presented.
+		- Waiiiiiiiiiiiiiiiiiiiiiiiiiiiit. Going through with suggestion alpha... if I pick a random node in the graph, and it
+			IS a part of the maximum clique... and then take a neighboring node that I'm about to pick as the start of the
+			MISAM... that node (if there is only one max clique) can either be a) another member of the max clique, or b)
+			not another member of the max clique. If a), then any and all MIS they happen to merge with will reduce the 
+			complexity of the graph w/o changing the max clique number. If b), then because there is only one max clique, 
+			there exists a MIS containing both the non-member AND at least one of the other members of the max clique. Now,
+			in the case of b), if the non-member-neighbor merges with another non-member-neighbor that automatically excludes
+			any MIS with other members of the max-clique, then the interpreted max clique number is actually k + 1. HOWEVER, 
+			all members of the max clique remain unaffected, and will still be present. In the case that there ever is a group
+			of nodes that all my neighbors are connected to (AKA all members of the max clique besides me and then some!) that
+			I am not connected to... that would imply either a) there is an MIS with me and all remaining nodes that I am not
+			connected to, implying multiple max cliques, which we stated there were none, or b) that there exists multiple
+			MIS's with me and the remaining nodes that, once merged, create an interpreted MCN of (me + my max clique bros)
+			+ some number 0 or above of misinterpreted neighbors of mine as part of the max clique + some irreducible number
+			of other merged nodes -- therefore b) implying that if I were to leave, the MCN would not change -- and thus, that
+			there is a higher MCN (which is a contradiction) and that I am not a part of it. In the case of b), then, I can
+			therefore be removed from the graph and all future consideration. Otherwise, by the time all my neighbors are done
+			and are connected/merged to all other nodes in the graph, then that must mean that removing me from the graph at that
+			point would affect the total MCN -- and thus, that means I'm part of the MCN.
+				- (If you are part of the max clique, there should be no MIS's left once you've merged them all... I think
+				is what this implies)
+		- (so amendment to suggestion alpha, you'll want to continuously build MIS with my neighbors until you can't anymore)
+				
+			
+		
+
 
 
 
