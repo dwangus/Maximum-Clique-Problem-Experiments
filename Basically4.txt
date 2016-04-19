@@ -1,0 +1,256 @@
+A... data representation vs. a data structure...
+A graph is a data representation... and if you know nothing about its internal structure (you just know,
+for a certain graph, what basic information is necessary to uniquely represent it), then it's almost like 
+a... an object, a black-box. And that object has a state -- its number of nodes, and which nodes are 
+uniquely connected to which other nodes. And it therefore has state -- you can't change some essential
+features of it (like merging nodes, deleting/adding edges, etc.) without possibly corrupting the state 
+of the original information (and defining operations of equal transformation is a whole-nother ballgame). 
+So an object with state that you can't change, and an object that you know nothing about, with regards 
+to its internal structure (because you've simply stated arbitrarily), but you know enough to let it...
+or rather, any instance of it "uniquely exist".
+
+What are the analogies for other NP-complete problems... What is the difference between a data representation
+and a data structure?
+
+You can also... still, technically, simulate a "reactive, emergent pattern" -- you can design an algorithm
+that changes the weights of each edge in a graph according to what other edges' weights are like, and only
+change the weights of the graph once all other weight-changes have been calculated (but because it's discrete, 
+after each iteration, you have to initialize some arbitrary "rates" w/ respect to time). And then repeat,
+however many times are necessary, for you to find/determine some emergent pattern in the graph.
+--> You can... model n points in n-1 dimensions in 3D space... by... treating each point as an object containing 
+	the distances to all other n-1 points. Think of... a sphere of points. Each individual point can be modeled 
+	at the center of the sphere, with distances to each other individual point recorded in 3D space (so think of 
+	a point as a center of a sphere, and an individual line labeled with the distance to all respective other n-1 
+	points (so n-1 lines) along the sphere's surface)... And if the distance between two points (one of them is 
+	stationary, one of them is moved) is adjusted, then for all other n-2 points that similarly have not moved, 
+	their distance with that point is adjusted accordingly... accordingly as in... the pythagorean theorem in 
+	(n-1)th dimensional space.
+--> And... in this context, you can initialize a complete graph in the sense of n points in n-1 dimensional space that
+	all have (initially) distance d from each other. No, in fact, d(i,j), wherein d(i,j) is the distance between 
+	nodes i and j (so d(i,j) == d(j,i)) in the graph. D is the matrix of d(i,j) for all combos. For all cells/boxes
+	of D (except in cases of d(x,x)), initialize it to 1. Mirrored with the matrix of edges, only those cells
+	corresponding to 1's in the edge_matrix (let's call it E -- and 1's in the edge_matrix cells means that, of that
+	row/column i and column/row j, there exists an edge between node i and node j) are capable of being changed (AKA,
+	in the (n-1)th dimensional space, all non-edges between points/nodes i and j are intractable)
+	--> Or we could just say that all non-edges do not even factor in -- AKA, when we model that specific point in the
+		center of a 3D sphere, all points not in its adjacency matrix are not even registered on the sphere's surface
+		(let's just say that, in d(i,j) = Null/None if e(i,j) == 0)
+--> "It can be proven that any matrix has a unique inverse if its determinant is nonzero." ...Hmmmmmmm...
+--> So... for each edge of nodes (x,y)... (because of bi-directionality), we simply... shorten it by some delta based on the... 
+	values/distances/weights of the edges of all shared neighbors z of x and y -- so keep a tally of all shared neighbors 
+	(let's call the set of all shared neighbors between x and y Zxy), and... based on |Zxy| and the d(z,x) and d(z,y) for all
+	z in Zxy... shorten d(x,y) by a certain delta (actually let's shorten d(x,y) by delta/2, so that when we encounter d(y,x), 
+	we can shorten it by the full delta (nah, forget it, doesn't matter actually)).
+	--> No, we don't want it to be based on the |Zxy|, as that becomes a constant that does not change between pairs of nodes...
+		What we should want is a function based on the changing d(z,y) values... 
+	--> That's interesting: an "unintended" reduction in one edge (say, (a,b)) of the max-clique, based on just how, coincidentally,
+		a and b share a lot more neighbors than just those among the max-clique... "ripples" throughout all other edges contained
+		by the max-clique... because let's say that all edges in the MCN are shortened by some percentage k. However, (a,b) is
+		shortened by some (k + r)% because a and b share even more neighbors. Then, if I'm imagining this function correctly,
+		the next iteration would have... all edges in the MCN be reduced by a further term/factor of (k+r)% (since a and b
+		share all members of the MCN, then...)...
+		--> No, in order to have the "ripple" effect... we need... between (a,b), we have a set of shared neighbors Cab. Then,
+			for each unique pair of Cab, (let's call it (c,d)), we check if c is connected to d: if that is true, we shorten 
+			(a,b) based on d(a,c), d(b,c), d(a,d), d(b,d) and d(c,d) (Also, if c is connected to multiple d's, then we subsequently
+			only shorten it by d(a,d), d(b,d), and d(c,d))
+			--> In this way, if (a,b) is shortened by some (k+r)%, then all other edges in the MCN, between pairs (x,a), 
+				(x,b) or (x,y), will be affected by this (k+r)%
+			--> The REAL question, though, is... how do we want to reduce (a,b) based on d(a,c), d(b,c), d(a,d), d(b,d),
+				and d(c,d)??? ...Ok, so if we initialize all d(i,j) to be 1, then we can essentially view all d(i,j)
+				afterwards as percentages...
+				--> Wait. What if we initialized all d(i,j) to be some 0.99...9 (w/ x number of 9 digits)...? Then,
+					what if we reduce (a,b) to be... d(a,c), d(b,c), d(a,d), d(b,d), d(c,d) == (0.9..9^5)% for
+					each 4-clique they're a part of... (so we keep a running total, for each 4-clique we find,
+					of the new (a,b)-reduced length -- since multiplication is commutative)
+				--> Shit, you can pretty much demonstrate that... this function wouldn't work in an n-clique vs.
+					two n-1-cliques sharing edges...
+					--> But how would running this on closed neighborhoods improve its performance...?
+						--> It definitely should improve its performance... at least, if I ran the entire method
+							over the closed neighborhood graphs to get different numbers for each node
+						--> No, what you do actually is, for each minimum edge, look at the closed neighborhood
+							of the edge's endpoints, and run the algorithm again to get a number and compare
+					--> Well... at the very least, in highly-interconnected graphs, it should do pretty well, since
+						there's a lot of overlap of edges and redundancy
+				--> The whole crux of this "reactive approximation" method is that the edge that's a part of the largest number of 4-cliques
+					is also, simultaneously, part of the MCN... Obviously, this isn't always necessarily the case.
+				--> How exactly do you exploit the increased interconnectivity of higher cliques, such that a difference of 1
+					is completely massive?
+		--> Wait...................... that's interesting. I'm not guaranteed, once running through this algorithm, to get an minimum edge
+			belonging to the most number of 4-cliques in the graph. HOWEVER... I MIGHT be guaranteed to get a maximum edge belonging to
+			the LEAST number of 4-cliques in the graph. That is definitely something. From there, I can implement an iterative approach
+			that slowly takes edges out of the graph... (although that's pretty dangerous -- when do I stop? After how many iterations
+			do I stop to compare max edges? 1? My algorithm works best in highly-interconnected graphs, yet I'm slowly disconnecting...)
+			--> I also might be able to couple this algorithm with my upper bound algorithm -- if I continue to take edges out of a
+				particular node, and that node's #edges falls below the lowest upper bound I found, then I can immediately
+				take that node out of the graph...
+			--> Furthermore, if I assume there to be a... max-clique of size k (good guesses would probably start with the
+				lowest upper bound and decrement from there), then I can... for a particular edge, guess that it should have
+				at least (k-2)(k-3) unique "4-cliques" it should be a part of --> thus, if it doesn't have at least that number,
+				we can remove that edge
+				--> And we can keep a "counter" for each edge in how many 4 cliques have been counted for it, as we run the
+					algorithm...
+			--> The only way this would break... is if... the edge with the LEAST number of 4-cliques in the graph... is also
+				part of the max-clique...? Is this possible?
+				--> Well, I mean, for starters -- if I delete the edge, then that means all other edges that were part of 
+					4-cliques with that pair LOSE a respective number of 4-cliques for themselves...
+				--> But also, in a highly-interconnected graph, it's really hard to say, or to think up an example...
+				--> Otherwise stated... is it possible to have c-number of k-1 cliques, wherein all edges of this construct
+					are a part of more 4-cliques than an edge of an isolated k-clique?
+					--> Yes... it is... just imagine one 6-clique vs. c 5-cliques, wherein each A-positioned-node
+						in each of the c 5-cliques is connected to each B,C,D,E positioned-nodes of all c 5-cliques,
+						and etc. for B,C,D, and E.
+						--> HOWEVER... the more a graph looks like that, the easier it is to find a realistic upper bound...
+							--> HMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM...
+--> And... for a number of iterations... each iteration calculates the delta for all edges in the graph, and then simultaneously,
+	shortens all edges in the graph by their respective amounts.
+--> So then after some specified number of iterations, we want to check... the lowest d(i,j) (let's call it min(D)), and find groups 
+	of edges that fall within similar distances relative to min(D), and check the corresponding nodes to see if they're in a 
+	clique together...?
+
+--> If you had... one extra point C at the center of the n-1 dimensional space (so coordinate point of [0,0,0...]), and had each
+	other point as specific points in this n-1 dimensional space, whose positions were moved relative to this center when 
+	their edge-distances were shortened... could you... then gradually enlarge the radius of an n-sphere centered at this C
+	by steps of a certain gradient (like, enlarge the radius by 0.0000001d at each step), and then at each step, signal how
+	many point-nodes are simultaneously now within range of this n-sphere's radius...?
+	--> http://math.stackexchange.com/questions/714711/how-to-find-n1-equidistant-vectors-on-an-n-sphere
+
+--> And, I guess, if you suspect that there may be more than one clique of size MCN, then what you can do is to pick one particular
+	node with min(D) and then proceed with the above in just the graph of its closed neighborhood...
+
+
+
+
+
+--> Ok, so:
+	--> Deleted = False (a flag)
+	--> do {
+		--> do {
+			--> Run bounds algorithm to get a number = b
+			--> Run fourclique algorithm to get a unique # for each edge. (sort list by smallest #)
+			--> For each edge:
+				--> If one of edge's endpoints has fewer than (b-1) neighbors:
+					--> Remove that node-endpoint from graph
+					--> Deleted = True
+				--> Elif the edge (part of least # 4-cliques) has number >= (b-2)(b-3):
+					--> Break
+				--> Else:
+					--> Delete edge from graph
+					--> Deleted = True
+			--> For each node:
+				--> If node has fewer than (b-1) neighbors:
+					--> Remove node from graph
+					--> Deleted = True
+		    } while (Deleted)
+		--> If graph is disconnected:
+			--> Break
+		--> Run ripple algorithm (fourclique algorithm except w/ distances and 0.999... initialized edges) for some number i iterations
+			(sort resultant list by largest #)
+		--> If largest-distance edge has unique number across all edges in list (AKA list[1] != list[0]): #not necessarily true
+			--> Delete edge from graph
+			--> Deleted = True
+	    } while (Deleted)
+	--> If graph is disconnected:
+		--> Find all subgraphs
+		--> Run ENTIRE algorithm on all subgraphs
+		--> upps = concatenated returned lists
+		--> Return [max(based on index 0 of all items in upps)]
+	--> Else:
+		--> Return [(bounds(graph G), G)]
+--> Basically, we filter for 3.5 scenarios:
+	--> 1) An edge is part of fewer 4-cliques than the experimental-upper-bound specified that all edges of the MCN should at LEAST be a part of
+		--> (0.5) A node has fewer neighbors than the experimental-upper-bound - 1
+	--> 2) When running the ripple algorithm, there exists asymmetry and a max-distance (AKA least-4-cliques-#) edge that should be deleted
+	--> 3) The graph is disconnected, so there's indeterminate behavior with >=two subgraphs being compared, where one has the max-clique w/
+		edges 4-C-N (4-clique-numbers) that fall within calculated bounds, and the other subgraphs do not (or they might) have the minimum 4-C-N
+		numbers, nor do they have asymmetry to exploit; in this case, we just run the entire algorithm on all subgraphs and compare the returned
+		bounds
+
+--> I wonder how the above will perform.
+--> I might also just want to run the ripple algorithm and see what it returns (clearly, it doesn't work for disconnected graphs like what I described with the
+	6-clique vs. c-number of 5-cliques intertwined, but... what about highly-dense graphs where everything's mutually overlapping? I would dare say it's 
+	highly probable the edge that's a part of the most 4-cliques is also a part of the MCN...)
+	--> We can devise an alternate algorithm as well, where we take the smallest edge from the ripple algorithm, and then just look at the closed-neighborhood
+		graph of the edge's endpoints' neighbors -- and then take them out of that graph from consideration, and recursively reduce the considered subgraph
+
+--> Also, the n-1 dimensional space idea... might still technically work... if I both use the coordinate system and n-sphere idea (centered around [0,0,...0]), as 
+	well as come up with a different function, as well as... explore... *************************************************************more about what I mean...
+	--> Actually, what I think I was imagining was, basically, in n-1 dimensional space, with every single node as a point-vector and equidistant from one-another, 
+		each point-vector would incrementally move some miniscule, constant unit of distance (to simulate naturally, smooth movement) in some direction based on
+		which nodes it had edges with, and the current distance between itself and such nodes -- so that the DIRECTION of movement was (as a unit-vector) was
+		based on where the other neighbors were in n-1 dimensional space. Like, if you imagine the vertices of a tetrahedron, each point would be moving
+		in the direction towards the center of the tetrahedron, because each point would have three other edges pointing towards its neighbors like a tripod,
+		and the addition of those vectors in those three disparate directions (in 3D-space) would sum into a resultant vector exactly pointing towards the center
+		of the tetrahedron. 
+		(The only caveat would be, however, that the SMALLER the distance between a vector-point and its neighbor in n-1 dimensional space, the GREATER it would 
+		contribute to the distance moved -- such as to save computational-time as they slowed down approaching the limit of space, or such that you could decrease
+		the unit of distance to simulate smoother (and thus more accurate) movement)
+		--> You might even be able to simulate something like physics, actually -- that the closer a vector-point is to a non-neighbor, the greater the repulsive
+			force, and the closer a vector-point is to a neighbor, the greater the attractive force...
+		--> Could you... not only combine calculus in the direction of movement in n-1 dimensional space for each vector-point (so as to do away with the "simulated
+			smooth-movement" aspect), but also... solve some system of equations taking into account repuslive and attractive forces -- such that there could
+			be said to be "equilibrium" between all vector-points in space?
+			--> You really can model this like in physics... the center of the tetrahedron, of the whole system of points, can be said to be the system's 
+				"center of mass" -- and each clique of increasing size can be modeled as such a system-object, each with its own center-of-mass in n-1 
+				dimensional space. The difficulty lies in multiple, overlapping recognizable system-objects, each with varying sizes and changing centers.
+				--> Oh, that's kind of interesting. A 4-clique modeled as a tetrahedron... There are 4 triplets of the 4-clique, the CoM of each of which lies
+					in the center of each of the triangular faces of the tetrahedron -- connecting each of them results in a smaller tetrahedron w/
+					an unchanged CoM as the original. Continuing the process literally "triangulates" on the point of CoM in 3D space.
+			--> Look at Coulomb Force and Universal Gravitation Law for any ideas
+		--> Basically, what you would do would be to have n equations, each of which is the sum (for edges) and subtraction (for non-edges) of n-1 vector-variables 
+			(of the positions of all other nodes) (the entire sum of which is multiplied by some coefficient (or two!), like in kq1q2/r^2?). If you're capable
+			of doing it, then take the derivative of the entire system of equations and set it = 0 and solve as a total function of time. Otherwise, in a 
+			coordinate-system, simulate smooth-movement by calculating the direction of the resultant sum (based on the inputted positions of each node in
+			n-1 dimensional space), multiplying it by some unit of distance, and storing that result for each node -- and finally, once calculations are all
+			finished, add each respective vector to each node's position -- and repeat. (also, you would probably bound it such that once nodes are within an
+			extremely small delta of each other, to treat it as a single point by which all nodes view... although, there might not be a point to that, as that
+			might be exactly what's occurring anyways)
+			--> Hmm... I guess that's why you can't "solve" a system of equations like that -- each equation takes as its input all other equations (since the
+				position of all other nodes at all times t is pretty much given by by an initial position and each node's own respective "direction" equation)
+				-- so all equations refer to each other. You have to "simultaneously" solve all of them... But, I think you can approximate it by very small
+				increments in time-deltas.
+			--> Hmm... but you might be able to come to an equilibrium, based on an analogously-set "Planck-length", and a constant for repulsive and attractive
+				forces...
+				--> Jeez though, it's still in n-1 dimensional space...
+					--> But limitations in 3D space might precisely be why we can't guess an electron's position, and why we only really get "harmonic"
+						equilibrium at the atomic-scale, rather than "static" equilibrium
+		--> Hmm... Or you might not even need a repulsive force at all. If the max clique ends up converging at a single point (which is practically guaranteed to
+			happen), all other nodes not part of the max clique (but most likely attached to some of them) will end up converging at other points in the n-1
+			dimensional space, just at a slower rate -- and you can experimentally calculate the rate over several iterations, and see which ones end up
+			converging the fastest...
+			--> It shouldn't be a unit of distance, but rather, more a relative percentage...
+
+--> An easier way to visualize N-dimensional space is to have N-axes (in 2D space, as that's all you really need) as lines drawn intersecting each other at the same
+	origin point. Each point you represent in this N-dimensional space exists on each axis (so there are, in this 2D space, N-versions of this point visually
+	depicted). If this point moves w/ respect to one dimension, it ONLY moves along that dimension's axis -- either + or - direction. Meaning, the "space" left
+	between the angles of all the axes never have points in them. If a point moves w/ respect to two dimensions, it moves along those 2 dimension's respective axes.
+	(theoretically, you could uniquely represent N points as being equidistant from one another in N-1 dimensional space... but it's easier to represent N equidistant
+	points in N-dimensional space, by just having the random ordering of N points on one axis "modulo'd" in the range(+1, +N) N-1 times on each other respective N-1 axes
+	-- and you would achieve the same result)
+	--> Ooh, that's kind of pretty -- in 2D space, N-number of axes (represented visually w/ 360/(2*N) degrees between each one of them) looks like a bespoke wheel
+	--> No, you know what would be easier in N-dimensional space for N-equidistant points? Specify some distance on an axis (let's say 1). Then for each axis,
+		one specific point is at the origin (so a 1-to-1 correpondence between axes and nodes) -- all other points are initialized at 1 unit away from the origin
+		on that axis (let's say +1). 
+		(Or, one could do the reverse and have each specific point initialized to 1 unit away from the origin, and all other points initialized to the origin...
+		-- that way, with N-dimensions, we have a unique space wherein a node won't be "approaching itself" when it gets time to determine his new distance)
+	--> No... wait... we might have to have N-1 dimensions -- otherwise, it separates out a node u's distance to v from v's distance to u...?
+--> Note to self: Let k be a specific integer. The number of possible, UNIQUE k-cliques a node in a given graph can be theoretically a part of are...
+	(and we define unique to be just sets of size k that are different in at least 1 member)
+	Let N = (# of neighbors)/(k-1)
+	Num_Unique_k-Cliques = sum(Combinations(k-1, i)*(N)*[(N-1)^(k-1-i)]) from i = 1 to k-1
+	...Yea, pretty sure that's correct; luckily, N is bounded by edge density in the graph, which is bounded by |G| (the number of nodes in the graph) -- the trouble
+		gets to be when it's an extremely large graph, and the max clique size is not that big relatively, and the graph has high edge density...
+
+--> *********I have to really understand how the max cliques "clump/cluster together faster" than smaller cliques... Simply taking a "small step" in the direction of 
+	your neighbors' positions doesn't cut it... I have to be able to give weight to closer neighbors...?
+
+
+--> Memoization in Dynamic Programming... where you can have n-dimensional OPT() tables, based on n-unique dimensions specified beforehand... but with each new dimension,
+	the number of values to compute OPT(k1, k2, .... kn) is increased another polynomial order...
+
+
+
+
+
+
+
+

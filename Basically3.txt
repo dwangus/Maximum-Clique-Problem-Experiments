@@ -1,0 +1,48 @@
+OHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH....
+You want to MAXIMIZE the size(MIS) w/ each MCN-member when merging...
+    Because otherwise, you could end up with all MCN-members connected to all
+    other nodes in the graph, but leftover nodes not part of the MCN that are
+    also NOT connected to each other...
+So, theoretically, if there exists a MCN of size k in a graph, then there exists
+    exactly k MIS's of varying size that the entire graph can be merged sequentially
+    into. But... finding exactly such k MIS's, where the cumulative merging of all
+    included nodes in the k MIS's == size(G).
+Also interestingly enough -- just knowing a unique max clique in a graph doesn't
+    necessarily mean that the graph's MIS lies with one of the members of that
+    MCN-solution... there could be multiple MCN-solutions, and the MIS lies with
+    any one member of all total.
+The difficulty of even a graph of size 125 is that you can't really confirm whether
+    or not there's only one MCN-solution to that graph.
+
+
+........
+
+
+Hmm... this is just for approx. purposes, but...
+All_Errs = []
+Take the average "upper bound" computed for all nodes in the graph, after running
+    my merge algorithm to completion using each node as a "seed".
+    - Call it "avg_upps"
+Use my algorithm to merge the first resulting MIS found for each individual node
+    in the graph. Note the size of each MIS found, and take the average MIS-size
+    over all nodes.
+    - Call it "avg_mis"
+For numbers 1 - lowest upper bound, let the number be called "test_k":
+    For that number,
+        Utilize my algorithm to continue merging an arbitrary set of size(test_k), given
+        a particular seed as the "root" node.
+        Note the size of the "leftovers" in the graph after attempting this merge.
+        Do so for all nodes in the graph, and take the average over all attempts of the
+        leftovers-size, call it "left_size".
+    Expected_Extras = left_size/avg_mis
+    Expected_Actual = avg_upps - Expected_Extras
+    Rel_Err = abs(Expected_Actual - test_k)/test_k
+    All_Errs.append((test_k, Rel_Err))
+All_Errs = sorted(All_Errs, key=itemgetter(1))
+print(All_Errs[0])
+
+....
+Nah, it doesn't work.
+
+http://www.ece.northwestern.edu/~dda902/336/hw4-sol.pdf
+--The majority-element thing was interesting

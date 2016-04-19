@@ -1,0 +1,31 @@
+New Ideas for Next Time:
+- After finding the first clique, the member of the clique w/ the highest "similarity order" (based on the dot product of its 
+	average edge vector vs. the overall graph's average vector) gets its edge vectors "weighted" -- that is, all its edges
+	are worth some factor x as much when averaging out the overall graph's vector (so the graph's vector is skewed more towards
+	some way in its direction). Do this iteratively with each next highest "similarity order" member
+- Average individual node's edge-vectors over several iterations? AKA, after deleting a new node in some iteration, when recalculating
+	each individual node's average-edge-vectors, the new average-edge-vector is averaged with the average-edge-vector of the last
+	iteration (or maybe over all edge-vectors of all iterations).
+- Same with above -- but do so for overall graph's average vector over several iterations?
+- ...There was something to be considered when... how, when I chose to delete the nodes from the graph before creating the N-D coordinate
+	system (now (N - k)-D) vs. when I created the N-D coordinate system and then deleted all those nodes' edges... The former performed
+	worse than the latter...
+- ...Don't add extra members in the step afterwards? Instead, analyze the remaining "possible" members somehow?
+
+- Make code more modular in the main parts, so it's easier to debug and reuse and change
+
+- Still haven't finished exploring the "converge to a specific point in N-D space" aspect...
+	- ...(definitely worth considering:) Let all the points converge to a specific point, as I'd done before (would need
+		several iterations in order for the movement to be "smooth") -- but this time, record that exact point in
+		N-Dimensional space, and then... use that for something. Perhaps, check to see how far away each point is
+		(given its starting coordinates) from that convergent point in space, and then, based off which ones are the
+		FARTHEST away... delete it from the graph and try again.
+		- Note: Make sure that... when you're trying to take the average direction of a node in the space based on
+			where its neighbors' coordinates are, that the individual vectors summed into the final directional
+			vector (i.e. each indvidual vector for each neighbor it has) are UNIT vectors before being summed 
+			(such that all neighbors' current positions are equally weighted -- not that the ones that are 
+			currently farthest away have the most weight in the final directional vector)
+
+- How does taking one node out of the graph affect the overall graph's average vector (OGAV)? I.E. the direction it faces? 
+
+- ...try solving... regular P problems w/ linear algebra...?
