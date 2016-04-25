@@ -115,7 +115,7 @@ def avgPosition(coords, nodes):
     return (average / float(len(nodes)))
 
 def convergence(coordinates, adjacency, space, onResume = False, resumedCoords = {}):
-    start = time.time()
+    #start = time.time()
     nodes = adjacency.keys()
     distances = {}
     if onResume:
@@ -147,13 +147,13 @@ def convergence(coordinates, adjacency, space, onResume = False, resumedCoords =
         for x in range(len(nodes)):
             updatePosition(coords, nodes[x], moveUpdates[x])
         updateDistances(coords, distances)
-        if (iter%100 == 0):
+        #if (iter%100 == 0):
         #    for key in coords.keys():
         #        print("{0}: {1},".format(key, coords[key]))
-            print("Round {0} ending".format(iter))
+        #    print("Round {0} ending".format(iter))
         #print(time.time() - startTime)
 
-    print("Time to Converge: {0}".format(time.time() - start))
+    #print("Time to Converge: {0}".format(time.time() - start))
     return avgPosition(coords, nodes)
 
 def main(filename, origSize, sample = False, sampleGraph = {}, onResume = False, resumeCoords = {}):
@@ -167,7 +167,8 @@ def main(filename, origSize, sample = False, sampleGraph = {}, onResume = False,
     else:
         graph = graphConv(filename)
 
-    toDel = []
+    #toDel = []
+    toDel = [36, 83, 108, 76, 51, 90, 64, 15, 95, 68, 42, 97, 88, 16, 94, 75, 102, 55, 43, 27, 33, 112, 87, 56, 21, 100, 73, 121, 107, 105, 3, 14]
     #toDel = [36, 83, 108, 75, 76, 51, 90, 73, 88, 42, 113, 15, 97, 16, 64, 95, 94, 3, 21, 102, 55, 116, 33, 27, 50, 87, 105, 78, 124, 112, 12, 100, 121, 106, 14, 56, 84, 120, 32, 53, 43, 37, 109, 28, 4,]
     for node in toDel:
         neighbors = graph[node]
@@ -177,19 +178,23 @@ def main(filename, origSize, sample = False, sampleGraph = {}, onResume = False,
 
     order = []
     #Typically, spacing is 5000
-    spacing = 5000
+    spacing = 50000
     coords = equidistant_vectors(origSize, spacing)
+    convergencePoints = []
+    iterDistances = []
     while True:
         coordsCopy = {}
         for key in coords.keys():
             coordsCopy[key] = np.asarray(coords[key])
         cPoint = convergence(coordsCopy, graph, spacing, onResume, resumeCoords)
+        convergencePoints.append(cPoint)
         #print(cPoint)
 
         distResults = []
         for node in graph.keys():
             distResults.append((node, distance(cPoint, coords[node])))
         distResults = sorted(distResults, key=itemgetter(1), reverse=True)
+        iterDistances.append(distResults)
         #print(distResults)
         parsed = []
         for item in distResults:
@@ -197,8 +202,7 @@ def main(filename, origSize, sample = False, sampleGraph = {}, onResume = False,
         order.append(parsed)
         #print(parsed)
         #return distResults[0][0]
-        print(order)
-        break
+        print(order[-1])
         
         if abs(distResults[0][1] - distResults[-1][1]) < 0.0000001:
             print("   Closest-Farthest Error Difference: {0}".format(abs(distResults[0][1] - distResults[-1][1])))
@@ -211,8 +215,20 @@ def main(filename, origSize, sample = False, sampleGraph = {}, onResume = False,
             for neighbor in graph[nextToDel]:
                 graph[neighbor].remove(nextToDel)
             toDel.append(nextToDel)
+            print("   Size of remaining graph: {0}".format(origSize - len(toDel)))
+            print("   Deleted so far: {0}".format(toDel))
             graph.pop(nextToDel, None)
+            print(time.ctime())
 
+    a = 1
+    b = 1
+    for point in convergencePoints:
+        print("After Iteration {0}: {1}".format(a, point))
+        a += 1
+    for iterDist in iterDistances:
+        print("After Iteration {0}: {1}".format(b, iterDist))
+        b += 1
+    
     if sample:
         origGraph = sampleGraph
     else:
@@ -276,6 +292,7 @@ main(filename, 125)
 #           434, 425, 415, 407, 400, 390, 383, 375, 368, 360, 353, 344, 337, 329, 321, 314, 308, 300, 293, 287, 280, 273, 267, 259, 253,
 #           246, 240, 234, 228, 222, 215, 209, 204, 198, 192, 187, 181, 176, 172, 166, 160, 155, 149, 145, 142, 139, 130, 126, 120, 116,
 #           112, 107, 104, 100, 95,  92,  88,  83,  79,  76,  72,  68,  65,  62,  58,  55,  52,  49,  46,  44,  41,  38,  36]
+# -- so in total, 28,427 seconds (or about 8 hours)
 
 #   Batch of deleted nodes from Vector-Projection-Method, from test8.py:
 #[36, 83, 108, 76, 51, 90, 64, 15, 95, 68, 42, 97, 88, 16, 94, 75, 102, 55, 27, 33, 43, 112, 87, 56, 100, 21, 73, 121, 107, 105, 3, 14]
@@ -434,8 +451,81 @@ checkClique(additional, graph)
 #space5000 = [36, 83, 108, 75, 76, 51, 90, 73, 88, 42, 113, 15, 97, 16, 64, 95, 94, 3, 68, 103, 33, 17, 116, 50, 12, 81, 100, 89, 55, 14, 63, 38, 105, 78, 21, 102, 112, 71, 93, 28, 56, 32, 61, 120, 87, 124, 122, 66, 23, 26, 53, 62, 84, 20, 27, 106, 37, 43, 107, 121, 79, 35, 117, 115, 31, 69, 13, 5, 118, 4, 1, 91, 57, 44, 109, 72, 58, 25, 2, 9, 96, 85, 48, 86, 119, 52, 30, 46, 74, 41, 6, 77, 82, 123, 22, 34, 92, 65, 10, 59, 70, 47, 24, 18, 39, 67, 125, 40, 29, 11, 49, 98, 80, 7, 110, 99, 101, 19, 8, 45, 111, 104, 54, 114, 60]
 #space15000 = [36, 83, 108, 75, 76, 51, 90, 73, 88, 97, 42, 113, 15, 64, 16, 95, 94, 3, 103, 68, 17, 33, 116, 50, 12, 81, 100, 89, 55, 63, 14, 102, 38, 21, 105, 78, 112, 71, 32, 56, 87, 93, 120, 28, 61, 124, 122, 66, 53, 62, 26, 43, 27, 23, 84, 107, 20, 106, 37, 121, 79, 35, 1, 5, 117, 69, 13, 31, 115, 72, 91, 118, 44, 58, 4, 57, 109, 25, 85, 2, 96, 9, 86, 30, 119, 74, 48, 46, 52, 6, 41, 34, 77, 92, 82, 123, 10, 22, 65, 59, 70, 24, 47, 39, 18, 125, 29, 11, 40, 67, 49, 98, 80, 19, 7, 99, 110, 101, 8, 45, 104, 111, 114, 60, 54]
 
+def worstGraph(n, k):
+    size = (k*(n-1)) + n
+    retGraph = {}
+    for i in range(1, (size - n + 1)):
+        neighbors = []
+        unMod = i%(n-1)
+        for j in range(1, (size-n+1)):
+            if (j%(n-1)) != unMod:
+                neighbors.append(j)
+        if i == 1:
+            neighbors.append(size)
+        retGraph[i] = neighbors
+    for x in range((size-n+1), (size+1)):
+        neighbors = []
+        for y in range((size-n+1), (size+1)):
+            if y != x:
+                neighbors.append(y)
+        if x == size:
+            neighbors.append(1)
+        retGraph[x] = neighbors
+    return retGraph
 
 
+'''
+#newGraph = worstGraph(6, 5)
+#main(filename, 31, True, newGraph)
+
+For worstGraph(6, 5), the "final convergent point":
+(I put "" around that, because all those of the 6-clique (beside that
+one connected to one of the 5 5-cliques) were still like 1500 units of
+distance away from all those of the 5 5-cliques, and it didn't look like
+it was going to converge any time soon (or rather, it was... but like at
+decimal pace every 100 rounds))
+cPoint = np.asarray([2447.77430702,1413.22315507,999.29967628,774.05420082,629.99564124,
+                   534.48907473,462.88111676,408.22277385,365.12554891,328.16183206,
+                   301.68480958,277.50966271,256.92402362,239.18324925,221.59612608,
+                   210.29682284,198.26974599,187.54440414,177.92024385,167.0796803,
+                   161.46290208,154.28314509,147.71486538,141.68312157,678.88482027,
+                   653.25722289,629.49441109,607.39996387,586.80411413,574.28835721])
+ -- which, by the way, was the convergent coordinate of node 31 after approx. 5700 rounds...
+
+ Returned ordered distance from this convergent point:
+[(21, 3790.2893136411608), (11, 3790.2893136361836), (16, 3790.2893136360913), (6, 3790.2893136344651), (10, 3788.2277809625589), (15, 3788.2277809625289), (12, 3788.2277809615584), (22, 3788.2277809615334), (8, 3788.2277809608322), (5, 3788.2277809601205), (3, 3788.2277809596826), (4, 3788.2277809595148), (7, 3788.2277809594166), (13, 3788.2277809586099), (20, 3788.2277809585817), (19, 3788.2277809581474), (17, 3788.2277809567599), (14, 3788.2277809566917), (18, 3788.227780956312), (9, 3788.2277809558213), (2, 3788.2277809557427), (23, 3788.2277809556413), (25, 3788.2277809550019), (24, 3788.227780954755), (1, 3718.6573908609635), (30, 3230.5991892704192), (26, 3230.5991892682646), (28, 3230.5991892666366), (27, 3230.5991892638694), (29, 3230.5991892621059), (31, 3223.1046395430294)]
+[[21, 11, 16, 6, 10, 15, 12, 22, 8, 5, 3, 4, 7, 13, 20, 19, 17, 14, 18, 9, 2, 23, 25, 24, 1, 30, 26, 28, 27, 29, 31]]
+
+
+ -- ...And also, the convergent coordinate of node 1 after approx. 5700 rounds... --
+cPoint = np.asarray([  2.49909152e+03,   1.44285116e+03,   1.02024984e+03,   7.90282129e+02,
+                       6.44991458e+02,   5.45392320e+02,   4.72323604e+02,   4.16550265e+02,
+                       3.72573884e+02,   3.36722501e+02,   3.07668617e+02,   2.83013965e+02,
+                       2.62020017e+02,   2.43927361e+02,   2.27885504e+02,   2.14349370e+02,
+                       2.02090524e+02,   1.91158498e+02,   1.81348875e+02,   1.72207264e+02,
+                       1.64483436e+02,   1.57169366e+02,   1.50478211e+02,   1.44333630e+02,
+                       2.58063098e+00,   2.48321332e+00,   2.39288423e+00,   2.30889706e+00,
+                       2.23060647e+00,   6.99362104e+00])
+
+ Returned ordered distance from this convergent point:
+[(30, 3602.9807906750025), (26, 3602.9807906698661), (27, 3602.9807906681704), (28, 3602.9807906677161), (29, 3602.9807906673755), (31, 3598.1534738824198), (21, 3464.4202613508569), (6, 3464.4202611179608), (16, 3464.4202611137816), (11, 3464.4202605544215), (3, 3464.1170687424428), (4, 3464.1170681282956), (22, 3464.1170673360666), (8, 3464.1170672805733), (19, 3464.1170672418098), (14, 3464.1170671279974), (7, 3464.1170671180766), (9, 3464.1170671108885), (15, 3464.1170670336514), (24, 3464.1170670212005), (18, 3464.1170669032431), (12, 3464.1170668324703), (5, 3464.1170668253558), (17, 3464.1170668051341), (13, 3464.117066796141), (25, 3464.1170665806817), (20, 3464.117066543397), (10, 3464.1170665022091), (2, 3464.1170664905644), (23, 3464.1170664819037), (1, 3462.8055461361373)]
+[[30, 26, 27, 28, 29, 31, 21, 6, 16, 11, 3, 4, 22, 8, 19, 14, 7, 9, 15, 24, 18, 12, 5, 17, 13, 25, 20, 10, 2, 23, 1]]
+
+
+ -- AND, the average of both node 1 and 31's coordinates after 5700 rounds... --
+cPoint = np.asarray([ 2473.43291351  1428.03715754  1009.77475814   782.16816491   637.49354962
+   539.94069737   467.60236038   412.38651943   368.84971646   332.44216653
+   304.67671329   280.26181386   259.47202031   241.55530512   224.74081504
+   212.32309642   200.180135     189.35145107   179.63455942   169.64347215
+   162.97316904   155.72625555   149.09653819   143.00837578   340.73272563
+   327.8702181    315.94364766   304.85443047   294.5173603    290.64098912])
+
+ Returned ordered distance from this convergent point:
+[(21, 3550.6356305619893), (6, 3550.635630444795), (16, 3550.6356304436244), (11, 3550.6356301707842), (3, 3549.3874626517886), (4, 3549.3874623520028), (22, 3549.3874619664816), (8, 3549.3874619390281), (19, 3549.3874619186781), (14, 3549.3874618623627), (7, 3549.3874618589757), (9, 3549.3874618535488), (15, 3549.3874618194382), (24, 3549.3874618092132), (18, 3549.387461752483), (12, 3549.3874617207466), (5, 3549.3874617165075), (17, 3549.3874617048459), (13, 3549.387461701444), (25, 3549.3874615943773), (20, 3549.3874615780933), (10, 3549.3874615601167), (2, 3549.3874615507966), (23, 3549.3874615465161), (1, 3511.7631593423275), (30, 3336.447784198017), (26, 3336.4477841942007), (28, 3336.4477841922517), (27, 3336.4477841911566), (29, 3336.4477841898743), (31, 3330.2130466929502)]
+[[21, 6, 16, 11, 3, 4, 22, 8, 19, 14, 7, 9, 15, 24, 18, 12, 5, 17, 13, 25, 20, 10, 2, 23, 1, 30, 26, 28, 27, 29, 31]]
+
+'''
+        
 
 
 

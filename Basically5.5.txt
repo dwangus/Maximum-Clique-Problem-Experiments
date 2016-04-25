@@ -1,0 +1,35 @@
+An algorithm that requires exponential memory:
+- For each edge in the graph G, create a node in the new graph H. For each of the nodes in H, 
+	add an edge between u and v if, in the original graph G, the endpoint nodes of u (uu, uv)
+	are exclusive and mutual neighbors with the endpoint nodes of v (vu, vv). Append to this edge
+	the nodes in G, as this edge's "name".
+- In the new graph H, delete any nodes not a part of at least a 4-clique.
+- Repeat the procedure on H, until there are no more 4 cliques in the resultant graph I.
+- On I, find any edges between singular nodes -- if none, look for any singular nodes. Return the
+	size of the node/edge's "name".
+--> Worst case, on a fully connected graph of size N... 
+--> You could improve the running time of OTHER algorithms by deleting edges in the original graph 
+	which don't belong to any 4 cliques...?
+
+If I want to vastly increase the accuracy of my Vector_Projection method, then I can create points
+	in the N-dimensional space regarding edges, and average over all the vectors of each
+	edge pointing to other edges sharing mutual (exclusive) neighbors
+
+
+
+How to employ weighting in Vector_Projection Method:
+- My initial vector-direction is called init_dir
+- If, after my neighbor moves in their direction (w/ all other neighbors staying constant), my new 
+	average vector-direction, called dir_prime, changes the LEAST -- that is, among all neighbors
+	individually moving, magnitude(vector_projection(dir_prime ONTO init_dir)) is the CLOSEST to 1.0
+		/// (or just the maximum dot product between dir_prime and init_dir)
+	-- it gets weighted the most. That is, we find the similarity of my vector_direction w/ every
+	one of my neighbors, and then based off of relative weighting (so like 0.6/(0.5 + 0.6 + 0.7)), 
+	we compute a new init_dir by doing vecList.append(weight*vectorFormation(cur_point, coords[point2]))
+	before summing over in vectorAddition(vecList)
+- Repeat for several iterations to see how the OGAV changes, as well as the ordering of similarity between
+	individual nodes' vectors and the OGAV
+- ...Or maybe, this could be a new method? As in, after running this for several iterations... rank each
+	node's neighbors in descending order, based on which of its neighbors it points closest to?
+	- It'd probably be really helpful, then, if we made the spacing HUGE, so that each unit-vector-step
+		in a calculated direction is really finely-tuned.
