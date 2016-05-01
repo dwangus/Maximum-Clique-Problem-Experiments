@@ -121,7 +121,10 @@ def dirSim(coords, memoized, graph, pastWeights):
 def iterate(graphOrig, numIter, redux = False, origSize = 0):
     start_time = time.time()
     if disconnected(graphOrig):
-        return []
+        temp = {}
+        for key in graphOrig.keys():
+            temp[key] = []
+        return temp
     graph = {}
     for key in graphOrig.keys():
         copy = []
@@ -166,11 +169,12 @@ def iterate(graphOrig, numIter, redux = False, origSize = 0):
             weight_p1[point2] = equalWeighting
         memoized[point1] = vectorAddition(vecList)
 
-    i = 0
-    while i < numIter:
-        print(i)
+    for x in range(numIter):
+        if x%10 == 0:
+            print(x)
         memoized = dirSim(coords, memoized, graph, weights)
-        i += 1
+
+    weightedSimil = {}
     similarity = {}
     #for key in graphOrig.keys():
     finalOrdering = {}
@@ -182,12 +186,25 @@ def iterate(graphOrig, numIter, redux = False, origSize = 0):
         for neighbor in graph[key]:
             similarity[key].append((neighbor, dot(myDir, unitVector(vectorFormation(coords[key], coords[neighbor])))))
         similarity[key] = sorted(similarity[key], key=itemgetter(1), reverse=True)
+
+        '''Averaging out similarities for smoother, "weighted" orderings
+        sumAvg = 0.0
+        for tup in similarity[key]:
+            sumAvg += tup[1]
+        weights = []
+        for tup in similarity[key]:
+            weights.append((tup[0],tup[1]/sumAvg))
+        weightedSimil[key] = weights
+        ###'''
+        
         ordering = []
         for neighb in similarity[key]:
             ordering.append(neighb[0])
         #print("{0}: {1}, ".format(key, ordering))
         finalOrdering[key] = ordering
+
     return finalOrdering
+    #return finalOrdering, weightedSimil
 
 def main(filename, iterations):
     graph = graphConv(filename)
@@ -274,7 +291,7 @@ def optimizeAdd(graph, openClique):
     print("Resultant Size: {0}".format(len(openClique)))
     return sorted(openClique)
     
-
+'''
 file3 = "c500.txt"
 file2 = "c250.txt"
 #file1 = "C:\Users\dwangus\Desktop\c125.txt"
@@ -289,7 +306,7 @@ sampleGraph = {1: [3, 4], 2: [3, 4, 5], 3: [1, 2], 4: [1, 2, 5], 5: [2, 4]}
 
 
 orderings1 = {}
-antiOrder = {}
+antiOrder = {}'''
 
 '''
 def checkEquiv(order1, order2):
@@ -314,7 +331,7 @@ def checkEquiv(order1, order2):
 #print(checkEquiv(orderings10, orderings100))
 checkEquiv(orderings10, orderings100)
 '''
-graph = graphConv(fileName)
+#graph = graphConv(fileName)
 def antiGraph(graph):
     antiG = {}
     for key in graph.keys():
@@ -326,7 +343,7 @@ def antiGraph(graph):
                     nonNeigh.append(key2)
         antiG[key] = nonNeigh
     return antiG
-antiG = antiGraph(graph)
+#antiG = antiGraph(graph)
 
 def freqGet(orderings):
     freq = {}
@@ -454,6 +471,15 @@ def antiNeighbors(clique, graph):
             if node2 not in graph[node1]:
                 print(node1)
                 print(node2)
+
+def closedCliqueNeighborhood(base, graph):
+    toDel = []
+    for key in graph.keys():
+        for member in base:
+            if key not in graph[member]:
+                toDel.append(key)
+                break
+    return delete(toDel, graph)
         
 
 
@@ -545,6 +571,7 @@ nonNeighClique([54, 114, 7, 125, 29, 80], graph)
     s53 = [1, 2, 5, 7, 9, 11, 18, 25, 29, 31, 34, 44, 48, 49, 54, 60, 68, 70, 71, 77, 79, 80, 82, 83, 85, 93, 101, 110, 114, 115, 117, 121, 122, 123]
     s54 = [1, 2, 5, 7, 9, 11, 18, 25, 29, 31, 34, 44, 48, 49, 54, 60, 68, 70, 71, 77, 79, 80, 82, 83, 85, 93, 101, 110, 114, 115, 117, 121, 122, 123]
     s55 = [1, 2, 5, 7, 9, 11, 18, 25, 29, 31, 34, 44, 48, 49, 54, 60, 68, 70, 71, 77, 79, 80, 82, 83, 85, 93, 101, 110, 114, 115, 117, 121, 122, 123]
+    sol56? = [1, 2, 5, 7, 9, 11, 17, 18, 19, 25, 29, 31, 34, 40, 44, 45, 48, 49, 54, 70, 71, 77, 79, 92, 99, 101, 110, 114, 115, 117, 121, 122, 123, 125]
 
 uniqueMembers = [1, 2, 5, 7, 9, 11, 13, 17, 18, 19, 22, 25, 29, 31, 33, 34, 40, 44, 45, 48, 49, 52, 54, 55, 60, 65, 66, 67, 68, 70, 71, 77, 79, 80, 82,
                 83, 85, 92, 93, 96, 98, 99, 101, 103, 104, 110, 111, 114, 115, 117, 121, 122, 123, 125]
@@ -562,7 +589,7 @@ Because, I mean, it's not an exaggeration to say if I just keep narrowing the gr
 based off of which nodes in the graph are most heavily "pointed" towards, based off linear-algebraic approximations... 
 '''
 
-#'''
+'''
 very_first_ordering = {1: [114, 99, 104, 54, 60, 29, 49, 98, 8, 19, 7, 110, 45, 111, 39, 40, 125, 80, 101, 48, 34, 10, 92, 22, 11, 122, 44, 115, 9, 2, 41, 96, 82, 123, 18, 70, 47, 24, 66, 26, 84, 107, 5, 57, 79, 25, 30, 46, 85, 119, 59, 65, 77, 14, 55, 93, 43, 121, 13, 58, 31, 91, 117, 6, 52, 74, 86, 103, 32, 61, 124, 20, 23, 72, 35, 69, 4, 81, 63, 28, 27, 62, 3, 33, 17, 68, 116, 38, 78, 89, 102, 71, 120, 15, 88, 94, 100, 21, 105, 112, 113, 50, 75, 51, 73, 16, 97, 76, 64, 90, 36, 83], 
 2: [54, 60, 114, 19, 80, 110, 45, 104, 111, 77, 29, 40, 67, 11, 8, 7, 101, 99, 35, 91, 74, 65, 34, 92, 24, 39, 70, 49, 98, 125, 84, 44, 57, 48, 119, 22, 59, 10, 123, 18, 47, 1, 79, 115, 6, 41, 86, 96, 82, 71, 32, 121, 122, 58, 5, 31, 72, 109, 117, 118, 9, 25, 52, 30, 46, 85, 61, 93, 124, 26, 37, 106, 107, 4, 69, 81, 100, 63, 78, 102, 87, 23, 27, 43, 62, 116, 14, 38, 21, 89, 112, 105, 28, 97, 94, 113, 12, 17, 68, 103, 108, 16, 88, 95, 50, 33, 51, 42, 76, 73, 64, 36, 83], 
 3: [111, 54, 45, 60, 114, 67, 19, 101, 7, 104, 82, 39, 18, 29, 40, 49, 125, 8, 99, 110, 4, 6, 25, 96, 10, 123, 47, 70, 24, 11, 98, 61, 20, 66, 106, 44, 58, 1, 13, 118, 46, 74, 86, 119, 59, 92, 53, 121, 5, 91, 69, 72, 79, 9, 30, 41, 48, 85, 77, 14, 32, 26, 23, 27, 62, 52, 33, 55, 28, 120, 37, 84, 107, 43, 122, 76, 109, 17, 103, 81, 63, 21, 112, 87, 93, 64, 113, 68, 38, 105, 71, 124, 15, 12, 50, 100, 78, 102, 73, 97, 116, 75, 51, 90, 88, 95, 36], 

@@ -1,0 +1,131 @@
+What did I learn from my approach in Basically5.5.txt...
+I learned that it's more efficient and practical to build a solution from the ground and narrow
+your search gradually that way, as there are (in densely populated graphs at least) going to be
+multiple unique solutions of max clique size... and so, it makes no sense to begin narrowing down
+based off which nodes don't converge as fast according to some metric, iteratively one-by-one, 
+as you may be inadvertently cutting off possible solutions to the set of nodes you do leave behind.
+
+Next round of approaches (as the last one was reasonably successful in determining node's 
+"preferences" among neighbors)...
+Interestingly enough, if you can, for any arbitrary graph, simply approximate the SIZE of the max
+clique... you can use that very method recursively on closed neighborhoods of each node to then
+find a set of nodes that fits the bill (based on which nodes end up having a POHNS of SIZE-1).
+--> Approach it this way. It may be computationally more efficient, and it allows you to find 
+	general solutions and heuristics that conceptually allow you to tackle bigger graphs.
+--> First possible heuristic... think about how... if you have a worst case graph of c k-1 cliques,
+	...the ratio of edge density... related to the number of c k-1 cliques... related to the
+	overall size of the graph... and how... if you gradually begin to insert edges between nodes
+	... at what point will there be a "tipping point" such that there begin to surface c-1 k-1 
+	cliques and 2 k cliques, etc. OR that the new max clique size is now k+1...?
+	--> Keep in mind that you should also "tailor" your approximation, based off the degree of each
+		node in the graph, and particularly also, the specific other nodes of specific degree
+		that each node is connected to (this is where my "preferences" ordering might come in
+		handy)... BUT, do so in a way that's non-recursive (AKA it doesn't end up calling itself
+		when evaluating each closed neighborhood and each closed neighborhood of each closed
+		neighborhood, etc.)
+
+--> ...alpha^k = 1/n? Probing the graph randomly x number of times, noting the average, and based off that and probability, predicting an alpha? And doing so for 
+	closed neighborhoods?
+
+
+#######################
+My heuristic, based off test8.4_numpy.py and ripple.py -->
+- Run main() in test8.4_numpy.py and obtain preference ordering among all individual nodes. --> Typically run at 100 iterations
+- Using preference ordering, run a ripple-effect from ripple.py (AKA, you can choose rippling(),
+	reverseRippling(), and within either, choose the factor-kernel -- AKA, linear, sqrt, etc.)
+	to obtain a singular ordering. --> Typically run at 100 iterations
+- Using the obtained ordering from ripple.py, select the highest-ranked node, and form a closed neighborhood 
+	of that node.
+- Repeat until there are no nodes left.
+- Return the clique and size of the clique.
+
+--> Implementation detail: obtain smoother, weighted orderings from test8.4_numpy.py
+--> Implementation detail: your factor TIMES their factor?
+
+--> Play around with different factor-functions, different weights, different ways of multiplying out the ripple-effect
+
+--> Whoaaaaaaaaaaaaa....
+	#Holy shit, this is so interesting...
+	#If I set the update to divide by its number of neighbors after each update,
+	#+ the regular factor set to value[key]
+	#+ the update being your factor * their factor
+	#... I get a shift of values from 10, to 50, to something pretty consistent @100+...
+	#... AND, if I change the function to being factor = math.sqrt(value[key])... things change differently too!
+	
+	#...What if I just keep this going over time? And I keep multiplying everything by some 10^+k of the (biggest number -1)?
+	#	What would happen?
+
+	#Furthermore... what if I just... didn't have orderings? I just... from the POV of each node, gave each node an equal weighting
+	#	at the beginning (based on how many nodes I had -- so 1/125 points to each of my 125 neighbors), divided (or multiplied! Idk) 
+	#	each node by their number of neighbors, and their new point value was... what factor they were allowed to have. And just let it run.
+	#	What would happen?
+
+--> ###Develop more heuristics that delete edges, not nodes, as time goes on
+
+--> Hmmmmmmmmmmmmm.... the nodes that appear most frequently at the END of a randomly found maximal set... hmmm....
+#######################
+#Note: Randomness is very attractive -- allows for parallelizable, concurrent computation
+New heuristic, based off hello.py:
+- Find edge rankings based off random probes.
+- Based off edge rankings for each individual node, create new probabilities of selecting that edge when probing and finding maximal cliques.
+	(AKA such that, for each node's edges to other nodes, create a probability that when selecting this node during maximal clique process,
+	you create relative probabilities of which remaining neighbors to select next based on that node's individual relative predix values of such
+	remaining neighbors (not of all neighbors, just remaining ones))
+- Repeat
+- After k iterations of this cycle, run MetaMetaRandomFind() in maximal.py, given these new edge probabilities
+#######################
+- Venn Diagram of mutual neighbors, but in N-dimensional space
+- ...Can you do it in 3D space? How do you embed N points on the surface of a sphere such that no 4 are in the same plane? (does it relate to the Tetrahedral #?)
+	--> No... I don't think so... the region of space within the sphere, if highlighted by 1 clique, is not mutually exclusive -- other cliques might just
+		end up highlighting portions of the same region
+- If ...given N points... you... highlight the region of space between two neighbors and all their mutually-shared neighbors... do so for each edge... and then
+	define a function MC(x,y,z,...) in N-dimensional space (not N-1) that depends on |E| (for number of edges -- and therefore, number of highlighted regions of space)
+	piece-wise functions (each of which specifies 1 within their highlighted region of space, 0 outside) whose height/value in the N-th dimension is dependent 
+	on the values of each such piece-wise functions (dependent upon the N-1 coordinate-variables)... Then finding just one such global optimum (as there will be 
+	several) in the N-1 dimensional space will specify a coordinate point which will only exist in bounded regions belonging to the specifying functions related to
+	specific edges (or pairs of neighbors)...
+	--> Now, of course, it's much easier to define some sort of Heaviside step-function in N-x dimensional space for each edge in E... or even some sort of...
+		function that says if X + Y + Z + ... < some number (thus, creating some bounded region in higher dimensional space), f(x,y,z,...) = 1, and 0 otherwise...
+		That'd be the definition of MC(x,y,z...) as an accumulation of such fE1(x,y,z...) functions... but that makes it incredibly hard to differentiate. Thus,
+		it might help (for approximation reasons) to have a "falling-off" feature such that (for each fEn(x,y,z...) values smoothly (but VERY quickly) fall to 0
+		once outside of the bounded region)
+		--> I think... I'd have to compromise and literally cut corners with approximations such as (N-x)-spheres fit inside the (N-x)-tetrahedrons (as I can't
+			think of any functions that directly allow me to specify a region of space so tightly as a triangle -- like (X+Y < c)), and once I've specified a
+			center for the (N-x)-sphere and a radius, I could use such x,y,z... coordinates and specify a sigmoid function with the exponent-coefficient
+			beta approaching infinity (or at least big enough that it satisfies some pre-determined epsilon based on N), and x in the exponent = (x+y+z+...
+			minus (or plus, idk which right now) some c)
+			--> That way, MC(x,y,z...) can just be a function of the sum of all "edge-functions" in |E|
+			--> Oops, in order for it to be "bounded", it has to be c1 <= (x - ...)+(y - ...)+(z - ...)+... <= c2 ==> No, wait, it just has to be 
+				0 <= (x - ...)+(y - ...)+(z - ...)+... <= (c2 = Radius)
+				--> Which makes things easier, as we can specify that x,y,z... are all positive 
+			--> Which also shouldn't be too difficult finding the (N-x) sphere, just calculate the center of the given points, and to find its radius, ...
+				do some maths lol, I can figure this out later
+			--> Yea, and then for the sigmoid function, we do theta = (x - ...)+(y - ...)+(z - ...)+..., the coefficient-beta = some ridiculously large number
+				to satisfy some delta, and f(theta) = (1/(1+e^((theta - radius)*beta))) --> Positive e-exponent such that theta-values < radius register as 1
+			--> And then we define MC(x,y,z...) as the sum of these f(theta) functions for each edge in |E|
+--> How might concurrent computing help such an approach?
+- But, of course, the problem still is -- how do you find the darkest/most-highlighted region of space?
+	--> ...Approximation method, such as not to get stuck in one local optimum at a time. Start at the center of the total region of space from all x,y,z... variables.
+		Define a new function as such: A(x,y,z...) = Continuous sum of MC(x,y,z...) as x,y,z start at center-coordinate, and dx=dy=dz=d... (basically, for the 2D
+		analog, we have MC(x,y) on the z-axis, and then define A(x,y) as a function of the sum of MC(x,y) starting at the center of the bounded region of space,
+		and increasing the "radius" of A(x,y) at a constant rate, as a function of x,y)... Then, we differentiate A(x,y,z...) and see where the largest "jumps"
+		are -- and then using those points in N-1 dimensional space as starting points, narrow our search of the N-1 dimensional space surrounding those points
+		to (hopefully) find global optimums.
+	--> Hoh, shit, wait! This problem, as I defined it above, most certainly is convex! That means there are a host of algorithms designed to find global optima!
+		--> Then, after running any convex-global-optima-algorithm on MC(x,y,z...) in the specified bounded region, we can find a point... that most accurately 
+			corresponds to the center of the clique in N-1 dimensional space! So we would just, once given the coordinate-point, test to see which nodes in
+			N-1 dimensional space it was closest to, and then single out that clique!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
