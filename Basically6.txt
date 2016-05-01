@@ -115,6 +115,12 @@ New heuristic, based off hello.py:
 		--> Then, after running any convex-global-optima-algorithm on MC(x,y,z...) in the specified bounded region, we can find a point... that most accurately 
 			corresponds to the center of the clique in N-1 dimensional space! So we would just, once given the coordinate-point, test to see which nodes in
 			N-1 dimensional space it was closest to, and then single out that clique!
+--> No... something's wrong... these (N-x)-spheres exist along lower-dimensional planes than (N-1)... so... you have to implement a theta in the sigmoid function
+	such that if any variables not belonging to an edge-function (AKA that an edge-function does not depend on) are varied, that edge-function's value quickly
+	falls to 0... that it will have a "thin-width" w/ respect to other variables... Therefore, it stands to reason that the center of some (N-x)-sphere can only
+	exist along that explicit (N-x)-plane... so which variables have to be held constant?
+	--> Rephrased another way, say you have a circle existing along some tilted plane in 3D space. How do we change the theta-function to reflect that, if we
+		move any x,y,z-coordinate such that we are no longer along that plane, f(theta) quickly falls to 0?
 
 
 
