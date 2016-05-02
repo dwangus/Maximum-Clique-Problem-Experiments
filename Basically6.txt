@@ -112,10 +112,6 @@ New heuristic, based off hello.py:
 		and increasing the "radius" of A(x,y) at a constant rate, as a function of x,y)... Then, we differentiate A(x,y,z...) and see where the largest "jumps"
 		are -- and then using those points in N-1 dimensional space as starting points, narrow our search of the N-1 dimensional space surrounding those points
 		to (hopefully) find global optimums.
-	--> Hoh, shit, wait! This problem, as I defined it above, most certainly is convex! That means there are a host of algorithms designed to find global optima!
-		--> Then, after running any convex-global-optima-algorithm on MC(x,y,z...) in the specified bounded region, we can find a point... that most accurately 
-			corresponds to the center of the clique in N-1 dimensional space! So we would just, once given the coordinate-point, test to see which nodes in
-			N-1 dimensional space it was closest to, and then single out that clique!
 --> No... something's wrong... these (N-x)-spheres exist along lower-dimensional planes than (N-1)... so... you have to implement a theta in the sigmoid function
 	such that if any variables not belonging to an edge-function (AKA that an edge-function does not depend on) are varied, that edge-function's value quickly
 	falls to 0... that it will have a "thin-width" w/ respect to other variables... Therefore, it stands to reason that the center of some (N-x)-sphere can only
@@ -149,13 +145,75 @@ New heuristic, based off hello.py:
 		"edge-function". Add this to a running list of equations.
 		(Note: choose a beta that's a huge enough number to satisfy some epsilon or delta, based on N, the size of the original graph)
 	-- Create a new function, called MC(a,b,c,...x,y,z,...(N-1)th-variable) = sum(edge-functions).
-	-- Run a convex maximization optimization algorithm to find the coordinates of one (of many) global optimum of the MC(...) function, in the bounded region of space
+	-- Run a non-convex maximization optimization algorithm to find the coordinates of one (of many) local optimum of the MC(...) function, in the bounded region of space
 		constrainted by the N equidistant points.
+		--> ...In the hopes that it finds a global optima
 	-- Given the coordinates of this one global optimum, find the distance to all N equidistant points. Sort the list of respective distances, and return either: ...
 		Option A) the batch of points (and respective nodes -- which all should be part of some clique) that all are within some miniscule delta of each other,
 				at the very top of the list, or...
 		Option B) the first point's corresponding node in the list. Repeat this process on the graph of the closed neighborhood of this node.
-			
+
+--> See:
+	-- "motzkin and strauss max clique quadratic programming"
+
+--> Hmm... when running a non-convex maximization optimization algorithm.... say I find a local optima of height k (as a returned value of MC(...))...
+	Why can't I just... "flood" the epigraph to the base height of k and modify MC(...) thereafter? 
+	As in, let MC(...) = sum(edge-functions). Find local maxima of height k after running the non-convex optimization algorithm. 
+	Append local maxima coordinate to running list.
+	Modify MC(...) += (-k + k*(1/(1 + e^(beta*theta)))), wherein theta is now dependent upon ALL (N-1) dimensions -- is now an added (N-2)-sphere -- 
+		where theta = (x - ...)^2 + (y - ...)^2 + (z - ...)^2 + (a - ...)^2 + (b - ...)^2 + ... - radius^2.
+	Repeat, with new additions of k based on new "filtered" local optima found by the non-convex maximization optimization algorithm. 
+	Once the final "local" minima found is the center of the entire body of points, return the last found local optima.
+	--> Does this actually work...? NO, it doesn't...
+
+	--> How do I "flood" the pits in a smooth manner???
+	--> WAIT!!! I GOT IT. 
+	Let MC(...) = ...
+	Let MC'(...) += k*((1/(1 + e^(beta*theta))) - 1/(1 + e^(-beta'*(MC(...) - k/2.))), wherein theta is now dependent upon ALL (N-1) dimensions 
+		-- is now an added (N-2)-sphere -- where theta = (x - ...)^2 + (y - ...)^2 + (z - ...)^2 + (a - ...)^2 + (b - ...)^2 + ... - radius^2.
+	All subsequent repetitions of MC''...'(...) use the original MC(...) as a nested sum-sigmoidal function.
+		--> Note: The second term... varying beta' has its ups and downs (literally).
+		--> Rule of thumb: solve for beta' by setting 1/(1 + e^(-beta'*(k - k/2))) = some y such that (1.0 - y) < some threshold epsilon specified
+		--> Along with this, we have to vary the learning-rate alpha (or some other gradient checking when performing gradient ascent) such as to 
+			skip over all local optima whose gradient/rate/derivative falls below a specific lower bound?
+	--> It's not exact... but it shouldn't be too bad either...
+	--> Furthermore, one could speed this algorithm up by finding the coordinates of some local optima based on the coordinates of some corresponding large clique
+		found through other means -- and then "flood-zero" out the higher-dimensional epigraph of the height of the local optima of that corresponding large clique.
+		(Like taking hops of 30, then 12, then 5, etc., until a global optima is found corresponding to the coordinate-center of a max-clique)
+	--> And given that one could use concurrent computing to find all edge-functions at once (and thus, all terms in the summation of MC(...) simultaneously), that
+		allows for further optimizations in run-time
+	#####
+	--> This is all dependent on, of course... 
+		A) N-spheres are good approximations to the N-dimensional polygonal shapes they're intended to fit inside
+		B) The maths is correct in saying that regions of space, shared by specific cliques, will be mutually-exclusively "highlighted"
+		C) The sigmoid function and corresponding beta-coefficient for such regions of highlighted, higher-dimensional space falls off 
+			quickly enough such that exclusive "dimensions" fall off quickly enough so as not to overlap with the regions of space occupied
+			by other cliques
+		D) Gradient ascent and other non-convex maximization algorithms are able to differentiate adequately on MC(...) and terminate in reasonable time
+		E) The coordinate-center of such cliques will indeed be the points corresponding to local optima
+		F) The "zero-out flood" technique does indeed help w/ reducing non-convex epigraphs, when applying gradient ascent/other convex maximization algorithms,
+			and gradually filters out local optima of greater height -- AKA, finds the global optima of the epigraph
+		G) ...yea, shit, there's a tradeoff between beta and how fast it would take gradient ascent to converge to a local optima...
+	#####
+	--> WAIT!!! I have a better approximation
+		Old MC'(...) += factor*sin((2pi/k) * x)*sigmoid(beta, x-k), with the factor pre-computed based on the min-height of [Old MC'(...) - MC(...)]
+	
+	--> Wait... why can't I just do this:
+		Let MC(...) = ...
+		MC'(...) = (1.0 - sigmoid(beta, (MC(...))-k))*MC(...)
+		...? 
+		Why was I fiddling with all that other stuff, this pretty much zeroes it out anyways?
+		And this way, I don't have to similarly add back in k*(1/(1 + e^(beta*theta))), I can just vary k based off of whatever new local optima k I find...
+		-- ...actually, if I DO add back in k*(1/(1 + e^(beta*theta))), it'll allow gradient ascent to converge more quickly... (I'd probably need to input
+		some smaller beta, so that everything's more gradually "converge-able", and that whatever miniscule differences are left from -sigmoid(beta, (MC(...))-k),
+		they're vastly out-scaled by the sigmoid-function's own gradient...
+		#####
+		--> I think, ultimately, it looks like this:
+			Let MC(...) = ...
+			MC'(...) = (1.0 - sigmoid(beta, MC(...)-k))*MC(...) + [k*sigmoid(-small_beta, theta)]*[sigmoid(beta, MC(...)-k)]
+			Vary k as you find bigger k.
+			(Note: set small_beta = 1?)
+#######################
 
 
 
