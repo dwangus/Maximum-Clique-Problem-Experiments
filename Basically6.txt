@@ -101,8 +101,9 @@ New heuristic, based off hello.py:
 			--> Which also shouldn't be too difficult finding the (N-x) sphere, just calculate the center of the given points, and to find its radius, ...
 				do some maths lol, I can figure this out later
 			--> Yea, and then for the sigmoid function, we do theta = (x - ...)+(y - ...)+(z - ...)+..., the coefficient-beta = some ridiculously large number
-				to satisfy some delta, and f(theta) = (1/(1+e^((theta - radius)*beta))) --> Positive e-exponent such that theta-values < radius register as 1
+				to satisfy some delta, and f(theta) = (1/(1+e^((theta + radius)*beta))) --> Positive e-exponent such that theta-values < radius register as 1
 			--> And then we define MC(x,y,z...) as the sum of these f(theta) functions for each edge in |E|
+			--> Oops, it should be theta = (x - ...)^2 + (y - ...)^2 + (z - ...)^2 ... - radius^2, and f(theta) = 1/(1 + e^(beta*theta))
 --> How might concurrent computing help such an approach?
 - But, of course, the problem still is -- how do you find the darkest/most-highlighted region of space?
 	--> ...Approximation method, such as not to get stuck in one local optimum at a time. Start at the center of the total region of space from all x,y,z... variables.
@@ -121,6 +122,40 @@ New heuristic, based off hello.py:
 	exist along that explicit (N-x)-plane... so which variables have to be held constant?
 	--> Rephrased another way, say you have a circle existing along some tilted plane in 3D space. How do we change the theta-function to reflect that, if we
 		move any x,y,z-coordinate such that we are no longer along that plane, f(theta) quickly falls to 0?
+		--> Plot z = 1/(1+(e^(beta*(((x-2)^2 + (y-2)^2) - 4))))
+		--> Plot y = 4*(1/(1+e^(beta*(x-3))))*(1/(1+e^(-beta*(x-3))))
+		--> Plot y = 1/(1+(e^(300(x-3))))
+		--> So... f(x,y,z...) should be like... with theta(x,y,dependent variables...) = (x - ...)^2 + (y - ...)^2 + ... - radius^2
+			and antitheta(z,independent variables...) = (z - ...) + (a - ...) + (b - ...) + ...,
+			then f(x,y,z,a,b,...) = [1/(1 + e^(beta*theta))]*[4*(1/(1 + e^(beta*antitheta)))*(1/(1 + e^(-beta*antitheta)))]... I think...
+			--> The only caveat with the above equation is that we have to have each node originally be placed on separate axes... right...?
+				Or does that not matter when we "zero" it out with (x - ...)? How do we determine the "independent" variables?
+				--> http://math.stackexchange.com/questions/714711/how-to-find-n1-equidistant-vectors-on-an-n-sphere
+				--> Well... if we specify k equidistant points in an (N-1)-dimensional space, each of those k equidistant points (if 
+					we found them "the right way") will have (N-k-1) "redundant" dimensions shared amongst all of them, none of which
+					need be used when forming the specified radius and center of the (k-1)-sphere. Thus, we specify the "dependent"
+					variables of theta based on which constraints/dimensions the k equidistant points require, and specify the "independent"
+					variables of antitheta based on which redundant dimensions (needed to specify the center of the (k-1)-sphere, but
+					needed for nothing more) are leftover...? Seems reasonable...?
+				--> Relevant: "Finding a sphere from 4 points", "Finding a circle from 3 points", "Finding center of triangle", "Finding center
+					of tetrahedron", "Finding 3-sphere from 5 points"
+					--> http://math.stackexchange.com/questions/894794/sphere-equation-given-4-points
+--> So, to sum it all up:
+	-- Create N equidistant points (for each node in the graph) in an (N-1)-dimensional coordinate system.
+		(Note: specify a huge spacing margin for the distance between all points)
+	-- For each edge in the graph, look at the endpoints' mutually shared neighbors -- based on all such k points (including endpoints), find the center & radius of the
+		corresponding inscribed (k-1)-sphere, and based on what dependent and independent dimensions were found in the creation of this (k-1)-sphere, use
+		the radius, center-coordinates, dependent, and independent variable-dimensions and form an equation f(theta, antitheta, radius, center). This is called an
+		"edge-function". Add this to a running list of equations.
+		(Note: choose a beta that's a huge enough number to satisfy some epsilon or delta, based on N, the size of the original graph)
+	-- Create a new function, called MC(a,b,c,...x,y,z,...(N-1)th-variable) = sum(edge-functions).
+	-- Run a convex maximization optimization algorithm to find the coordinates of one (of many) global optimum of the MC(...) function, in the bounded region of space
+		constrainted by the N equidistant points.
+	-- Given the coordinates of this one global optimum, find the distance to all N equidistant points. Sort the list of respective distances, and return either: ...
+		Option A) the batch of points (and respective nodes -- which all should be part of some clique) that all are within some miniscule delta of each other,
+				at the very top of the list, or...
+		Option B) the first point's corresponding node in the list. Repeat this process on the graph of the closed neighborhood of this node.
+			
 
 
 
