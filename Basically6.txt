@@ -283,6 +283,18 @@ Added notes to Heuristic 4):
 	But, also, you could drastically speed up the compute time with concurrent/parallel computing, and a powerful differential engine, probably up to O(N^3) time (let log(N) processors compute log(N) different guesses,
 	and N^2 processors find the edge-functions simultaneously, pooling up the summation function of MC(...)).
 	And, of course, determining an actual clique of such size simply requires repeating this entire procedure on the closed neighborhood-graphs of each individual node.
+
+	--> Ah, wait, shit, one HUGE caveat: because of a large beta in antitheta, the "added" slice is going to be super thin, and might not add much to the integral at all (or at least enough to be
+		detected)... I guess, then, you'd just have to compare the derivatives of both functions, and see which ones would drastically change, given tiny steps (the number of steps would be 
+		basically the width of the entire bounded region divided by a detectable width of a sigmoid function's derivative "peak" given a beta... which, unfortunately, multiplies my entire
+		algorithm out by a variable factor of time... yikes.)
+		--> (Eh... then again... if beta is 1000... the integral of that "fall-off" for ONE sigmoid function, w/ measured-peak-width of 0.006... is actually 0.0013 --
+		 that's not HORRIBLE to detect...)
+
+-- https://homes.cs.washington.edu/~afriesen/papers/nips2013_opt.pdf
+	--> This honestly seems so damn similar/close to what I was doing... and missing my core aspects by millimeters... And it was done in 2013 -- which leads me to believe that my idea/approach
+	might perhaps be new...?
+	--> Found by googling "eliminating local optima combinatorial non-convex optimization"
 #######################
 
 
