@@ -200,17 +200,17 @@ New heuristic, based off hello.py:
 	
 	--> Wait... why can't I just do this:
 		Let MC(...) = ...
-		MC'(...) = (1.0 - sigmoid(beta, (MC(...))-k))*MC(...)
+		MC'(...) = (1.0 - sigmoid(beta, (MC(...))-k-1))*MC(...)
 		...? 
 		Why was I fiddling with all that other stuff, this pretty much zeroes it out anyways?
 		And this way, I don't have to similarly add back in k*(1/(1 + e^(beta*theta))), I can just vary k based off of whatever new local optima k I find...
 		-- ...actually, if I DO add back in k*(1/(1 + e^(beta*theta))), it'll allow gradient ascent to converge more quickly... (I'd probably need to input
-		some smaller beta, so that everything's more gradually "converge-able", and that whatever miniscule differences are left from -sigmoid(beta, (MC(...))-k),
+		some smaller beta, so that everything's more gradually "converge-able", and that whatever miniscule differences are left from -sigmoid(beta, (MC(...))-k-1),
 		they're vastly out-scaled by the sigmoid-function's own gradient...
 		#####
 		--> I think, ultimately, it looks like this:
 			Let MC(...) = ...
-			Then, MC'(...) = (1.0 - sigmoid(beta, MC(...)-k))*MC(...) + [k*sigmoid(-small_beta, theta)]*[sigmoid(beta, MC(...)-k)]
+			Then, MC'(...) = (1.0 - sigmoid(beta, MC(...)-k-1))*MC(...) + [k*sigmoid(-small_beta, theta)]*[sigmoid(beta, MC(...)-k-1)]
 			Vary k as you find bigger k.
 			(Note: set small_beta = 1?)
 	--> Might be better to have a circumscribed N-sphere rather than an inscribed N-sphere...? Might help with gradient calculations and greater overlapping areas...?
@@ -290,11 +290,80 @@ Added notes to Heuristic 4):
 		algorithm out by a variable factor of time... yikes.)
 		--> (Eh... then again... if beta is 1000... the integral of that "fall-off" for ONE sigmoid function, w/ measured-peak-width of 0.006... is actually 0.0013 --
 		 that's not HORRIBLE to detect...)
+			--> But it might be w/ respect to some large height of k...
+
+--> To sum up, for each edge, we have: 
+	f(x,y,z,a,b,...) = [1/(1 + e^(beta1*theta))]*[4*(1/(1 + e^(beta2*antitheta)))*(1/(1 + e^(-beta2*antitheta)))],
+		where 	theta(x,y,dependent variables...) = (x - ...)^2 + (y - ...)^2 + ... - radius^2
+			where 	radius = some 0.99... fraction of the distance between the circumscribed (n-1)-sphere of the subset-body of n points,
+			and	(x - ...)^2 + (y - ...)^2 + ... refers to the dependent (non-redundant) variables of center of lower-dimensional (n-1)-sphere of subset-body of n points
+		and   	antitheta(z,independent variables...) = (z - ...) + (a - ...) + (b - ...) + ...
+			where (z - ...) + (a - ...) + (b - ...) + ... refers to the independent (redundant) variables that the lower-dimensional "plane" of the subset-body of n points that
+				houses the lower-dimensional (n-1)-sphere need not be concerned with
+	
+	MC(...) = sum(f(theta, antitheta) functions for each edge),
+	MC'(...) = (1.0 - sigmoid(beta3, MC(...)-k-1))*MC(...) + [k*sigmoid(-beta4, theta2)]*[sigmoid(beta3, MC(...)-k-1)],
+		where 	theta2(x,y,z,a,b,c...) = (x - ...)^2 + (y - ...)^2 + (z - ...)^2 + (a - ...)^2 + ... - radius^2
+			where radius = some 0.99... fraction of the distance between the circumscribed (N-1)-sphere of the body of N points
+	/// (confirmed, the below does not work)
+	and, after replacing all variables in MC(...) w/ one variable x,
+	MCNSID = [integral(MC'(x)dx) - integral(k*sigmoid(-beta4, (N-2)(xi - ...)^2)dx)]
+	and, new function NSDD (nested sigmoidal derivative difference),
+	NSDD = [d(MC'(x))/dx - d(k*sigmoid(-beta4, (N-2)(xi - ...)^2))/dx]
+--> Note: seems to be best if I vary the beta2 w/ antitheta to be ...medium?, the beta1 w/ theta to be ...medium?, the beta3 in the outer sigmoid to be large, and the beta4 in the added "flood term" of MC'(...)
+	to be ~1.
+	--> Because, in reality, the "peaks" being detectable in the 2D graph vary largely on beta1 and beta2... as in, a large beta3 ensures that, for all values of x in the
+		2D graph, such values of x that achieve a height k in MC'(...) get 0'd out very quickly, and setting beta4 to 1 allows for a "normal frame of reference",
+		but beta1 specifies how quickly terms in MC(...) fall to 0 w/ values of x outside of a solvable range, and beta2 specifies how quickly terms in MC(...) fall to
+		0 outside of one particular value of x...
+		--> And furthermore, ... if theta(x) = 0 --> meaning, one can solve for (x - ...)^2 + (y - ...)^2 + ... <= radius^2... presumably solving for 2 points of x,
+				a lower bound (L(x)) and an upper bound (U(x)), and you have a range of values in that range which x can occupy...
+				and, setting antitheta = 0, meaning (x' - ...) + (x' - ...) + ... = 0, one can solve for x'... w/ 1 value...
+				...What happens if x' is not between L(x) and U(x)??? Wouldn't that mean that the "peak" wouldn't register 
+				in the 2D graph, as outside of [L(x),U(x)], values quickly drop to 0, and outside of x', values quickly drop to 0??? 
+				Can I prove that that would never happen?
+				--> Maybe not necessarily... as solving for x' in this case essentially just finds the average of all redundant coordinates in specifying the
+					lower-dimensional plane of that particular lower-dimensional (n-1)-sphere...
+				--> No, you know what would make more sense? Instead of changing the individual edge-functions of form f(x,y,z,a,b) to f(x) by just replacing
+					all instances of variables w/ x... you instead change it to:
+					f(x) = [1/(1 + e^(beta1*theta))]*[sum of ([4*(1/(1 + e^(beta2*(x - c1))))*(1/(1 + e^(-beta2*(x - c1))))]) for each unique c term in antitheta]
+					--> But how does that change the original transformation of MC'(...)? ...Well, that actually does complicate things. Yea, for sure, it changes
+					the achievable height of k...
+					--> Fuck, the original way actually changes things too. If it's just finding the average of all redundant coordinates, then you might not
+					necessarily have overlaps of edge-function terms corresponding to the same values of x' (AKA, regions of mutually-shared space between edges)... 
+					And, likewise, you could have edge-function terms sharing corresponding values of x' that DON'T share such regions in higher dimensions... SHIT!
+						--> Well, it might be interesting to see that... all combinations of cliques' centers might occupy different (by INCREDIBLY slight degrees)
+							discrete points in higher-dimensional space, such that the average of the redundant coordinates for each center might never actually
+							occupy the same point in 1-dimension... but that's conjecture. And even if that were true, you'd basically have to search for "spike-peaks"
+							in the 2D graph (by having an EXTREMELY large beta2), of taking steps of practically 0-dimensions, that approach infinity, 
+							exploring all possible, continuous values of x... shit.
+							--> ****...If the conjecture were true, could you find differences in NSDD analytically? AKA, solve for values of x where NSDD > 1?****
+
+--> What if... instead of transforming MC'(...) into one dimension for MCNSID and NSDD... I instead just integrated over all dimensions to find the N-dimensional-manifold-surface-area and compared
+	the values? Two notes immediately come to mind: this approach would actually work better if I varied beta2 to be smaller (as lower-dimensional "widths" that are narrow would barely contribute
+	to the overall value of the integral over all dimensions). More importantly... the second note: it might not be possible to integrate. Nesting sigmoidal functions within each other... might be
+	impossible to integrate as a result. (Buuut, I mean... it might be possible to approximate?) But the fact that as c varies, k = c*(c-1)/2 varies a lot faster helps "counter" the "thin-ness" of
+	lower-dimensional planes...?
+	--> Wait... if I have MC'(...) and (k*sigmoid(-beta4, theta2) = ) Reference-Sigma(k), if I compare integrations across each INDIVIDUAL dimension... if any of them are different, then we know
+		that there exists other, local optima I'm not considering... right? (Well, the "thin-ness" of lower-dimensional planes still exists as a problem...)
+	--> Curse of dimensionality!!!
+	--> Mmmm... no, wait, if MC'(...) = (1.0 - sigmoid(beta3, MC(...)-k-1))*MC(...) + [k*sigmoid(-beta4, theta2)]*[sigmoid(beta3, MC(...)-k-1)], then it's a lot easier to just have 
+		antiMC'(...) = (1.0 - sigmoid(beta3, MC(...)-k-1))*MC(...) -- and then integrate over antiMC'(...) over all dimensions for varying values of k (k w.r.t. c), and make an INCREDIBLY large
+		beta3, a "modest" beta1 and beta2 (but not too modest, definitely still needs to be steep, steep enough that "combinatorial explosion" summations over tiny, tiny values in the fringes
+		of the sigmoid function don't actually end up counting for anything), and see when c eventually (but definitively) varies to 0 (when beta3 approaches infinity)... Does that work?
+		--> Ah... hahahaha... fuck. Integrating antiMC'(...) over N dimensions... leads to 2^N terms to evaluate, eventually... Wow, shit.
+--> ...Can you use interval analysis in conjunction with my usage of "zero-then-flood" technique? I.e., bound the range of values considered (like, guess an upper bound to the size of the max clique,
+	and then only search for local optima within the "intermediate shell"/intermediate space between the original (N-1)-sphere and the (U(N)-1)-sphere? ...But, I mean, that still doesn't prevent 
+	you from finding local optima at the fringes of the inner-sphere...
 
 -- https://homes.cs.washington.edu/~afriesen/papers/nips2013_opt.pdf
 	--> This honestly seems so damn similar/close to what I was doing... and missing my core aspects by millimeters... And it was done in 2013 -- which leads me to believe that my idea/approach
 	might perhaps be new...?
 	--> Found by googling "eliminating local optima combinatorial non-convex optimization"
+
+-- https://en.wikipedia.org/wiki/Duality_%28optimization%29
+-- https://inst.eecs.berkeley.edu/~ee127a/book/login/l_dual_weak_lag.html
+	--> These, too, seem to be strongly, intrinsically tied to what I'm attempting...
 #######################
 
 
