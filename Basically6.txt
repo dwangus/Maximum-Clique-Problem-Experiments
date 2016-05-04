@@ -210,10 +210,100 @@ New heuristic, based off hello.py:
 		#####
 		--> I think, ultimately, it looks like this:
 			Let MC(...) = ...
-			MC'(...) = (1.0 - sigmoid(beta, MC(...)-k))*MC(...) + [k*sigmoid(-small_beta, theta)]*[sigmoid(beta, MC(...)-k)]
+			Then, MC'(...) = (1.0 - sigmoid(beta, MC(...)-k))*MC(...) + [k*sigmoid(-small_beta, theta)]*[sigmoid(beta, MC(...)-k)]
 			Vary k as you find bigger k.
 			(Note: set small_beta = 1?)
+	--> Might be better to have a circumscribed N-sphere rather than an inscribed N-sphere...? Might help with gradient calculations and greater overlapping areas...?
+		--> Actually... might be better to have a circumscribed N-sphere that's just BARELY smaller than the higher-dimensional manifold/shape/polygon it circumscribes -- i.e., such
+			that it doesn't encapsulate the vertices of the higher-dimensional manifold/shape/polygon and such vertices lie outside of its region
 #######################
+
+Heuristics To Try:
+1) Approximate size of max clique based on probabilities, edge densities, degrees, worst-case-graph comparisons, etc.
+2) Ripple.py experiments -- w/ simultaneous clustering/filtering...
+3) Meta-Random Find, based on changing edge-ranking probabilities, and based on random maximal-clique probes into graph w/ "last-one-left-popularity" heuristic
+4) (most promising) "Iteratively-Convex" Optimizations Over Smoothly-Differentiable Nested-Summed Sigmoidal Functions Approximating Overlapping k-Dimensional-Spherical Spaces
+	
+	-- ...if this 4th approach is true... then P = NP... but I feel like... things are still preserved. At least w/ regards to human cognitive understanding and perception,
+		that "there's no difference between recognizing a solution and finding one", and these implications in the analogies such as "there'd be no difference between
+		appreciating a symphony and writing one"... there still is a difference. What I did, substituting MC(...) into itself, was nothing more than a clever mathematical "trick"...
+		That, if I were to liken it to anything, (besides the difficulty in picturing the higher dimensionality of the whole approach) it'd be like the mental gap in finding 
+		square roots of factors and negative numbers, necessitating the "temporary invention" of the intermediary, imaginary number i. That, there's still a mental "jump" there...
+		If you were to plot out the steps in writing a symphony, in your invention of a new algorithm, in your finding a solution to a problem... there'd still be that kind of
+		gap between your steps, inexplicable to anyone as to exactly HOW you came to think of this, but that you just "did" -- that's so necessary to describing inexplicable genius
+		in the first place. And just because it is mathematically feasible, doesn't mean it ever accurately describes, in "real" terms, what really happened between step A and step B
+		in crafting the final result. It simply is, and can be done, but we cannot explain why. And so long as it's inexplicable, but doable and "real"... then people can still make 
+		their mental jumps and come up with amazing, beautiful, and similarly... "inexplicably real" things. And if my approach is mathematically sound and does indeed imply 
+		what I think it implies, then... P=NP doesn't detract from that Magic which is, and always will be, "inexplicably real".
+
+#######################
+Added notes to Heuristic 4):
+-- http://mathoverflow.net/questions/32533/is-all-non-convex-optimization-heuristic
+-- http://www.sbras.ru/interval/Library/Thematic/GlobOptim/GlOptUsingIA-1.pdf
+-- "The requirements on the function are that it be Lipschitz or smooth to some order, and that it not have a combinatorial explosion of local optima."
+	--> I... think... my function is Lipschitz continuous? It's pretty much all composed of sigmoids, after all...
+	--> But... the "combinatorial" explosion of local optimas is definitely a problem...
+		--> But, as I see the context of the comment referring to the above paper in "Interval Analysis"... the intervals he's deleting from consideration
+			are across the dimensions of the input vector of X, not across the singular dimension of f(X) -- so of course combinatorial local minima explosion
+			would drastically affect the running time of his method, in terms of the number of intervals needed to be evaluated...
+
+-- If I'm making the "slices" of dimensions incredibly thin, and that the sigmoidal function falls off really quickly for each individual edge in MC(...)... then, when I do transform the 
+	graph into MC'(...), the added term of + [k*sigmoid(-small_beta, theta)]*[sigmoid(beta, MC(...)-k)] might end up, in huge dimensions, causing random starting points chosen during
+	gradient ascent to just ignore (because the "thin peaks" in N-dimensional space barely factor in at all into the surrounding gradient) any other local optima and converge at the
+	very center... So random walking that continuously ends up converging at the center of the body of N equidistant coordinates, for that particular local optima of the entire bounded
+	region of space... is sure to break my heuristic.
+
+-- But wait. I think can go a step further in my analysis... 
+	
+	Let k = some integer constant (preferably some height k = c(c-1)/2, for a discrete integer c < N). 
+	
+	When I transform MC(...) into MC'(...)... When I perform gradient ascent to find some local optima, the "random walking" I do, w/o loss from generalization, can be seen as a direct
+	"walk" from one vertex at the absolute boundary of the bounded region of space (so, maybe coordinate (0,0,0...)) to the very center of the bounded region of space. And... if it's
+	the case that the height k I've assumed IS indeed, now, the global optima of MC'(...), then, really, the gradient of my entire N-dimensional epigraph will be nearly identical to 
+	the gradient of that of a regular sigmoidal function over the entire bounded region of space -- that is, for all coordinates in the space, gradient(MC'(...)) ~= gradient(k*sigmoid(-small_beta, theta)).
+	Otherwise, if it's not the case, and that there is some global optima I'm missing, then of course, there exist some coordinates in the space where gradient(MC'(...)) != gradient(k*sigmoid(-small_beta, theta)).
+													(!=, in this case, refers to how the absolute difference of the compared gradients > some tiny, tiny epsilon threshold)
+	...But, moreover, because I'm assuming that I'm walking in ONE direction -- that is, d(MC')/dx = d(MC')/dy = d(MC')/dz = d(MC')/da = ... -- we can directly reduce the dimensionality of 
+	k*sigmoid(-small_beta, theta) to 1! That is, replace all instances of y,z,a,b,c... in the function with x, and thus, now, the function becomes k*sigmoid(-small_beta, (N-2)(xi - ...)^2). But FURTHERMORE,
+	it stands to reason, then, that if there exist some coordinates in the space where gradient(MC'(...)) != gradient(k*sigmoid(-small_beta, theta)), then if we similarly replace all y,z,a,b,c...
+	variables in MC'(...) w/ x, then the same ***SHOULD HOLD*** (big if), that there exist some value of x in 1-dimensional space such that gradient(MC'(x)) != gradient(k*sigmoid(-small_beta, (N-2)(xi - ...)^2)).
+	Otherwise stated, if there is some global optima, for a specific k, that I'm "missing" by walking straight to the center, then for some values of x (in the analogous bounded region in 1-dimension), 
+	d(MC'(x))/dx != d(k*sigmoid(-small_beta, (N-2)(xi - ...)^2))/dx.
+	==> Which, I think... similarly implies that integral(MC'(x)dx) > integral(k*sigmoid(-small_beta, (N-2)(xi - ...)^2)dx), for the range (presumably) [0, distance((0,0,0...), center of N-dimensional space)*2]
+		(Note: It really does depend on how "thin" the slices would be transformed into 1-dimension, and if that would add any significant area to the integral of (MC'(x)dx)... but then again,
+			one might be able to smoothly vary the upper bound in the range [0, ___] to be able to better detect if there are any drastic differences between the two)
+		-- Otherwise stated, one can analyze [integral(MC'(x)dx) - integral(k*sigmoid(-small_beta, (N-2)(xi - ...)^2)dx)] to see if it's > 0 (or some epsilon threshold very close to 0)
+	==> Meaning... I think this is implied... If you calculate out [integral(MC'(x)dx) - integral(k*sigmoid(-small_beta, (N-2)(xi - ...)^2)dx)] for incremented discrete values of c, where k = c(c-1)/2...
+		... then... the point that that function (which I guess I'll call MCNSID(k,x) (max-clique-nested-sigmoidal-integral-difference)) converges to 0... 
+		... might it be... the size of the max clique???********************
+
+	If that was true... then this algorithm would run MUCH faster... i.e., it would take in total O((N^5)*log(N)) time (n^2 for "edge-function", n checks of mutual neighbors for each edge, another n^2 for multiplying
+	terms out in MC'(...), and also, for varying values of c up to N (In fact, you wouldn't even have to use much of c -- you could guess a high number, or start from a lower/upper bound, and slowly increment from there, or
+	just make guesses on halves of N))...
+	But, also, you could drastically speed up the compute time with concurrent/parallel computing, and a powerful differential engine, probably up to O(N^3) time (let log(N) processors compute log(N) different guesses,
+	and N^2 processors find the edge-functions simultaneously, pooling up the summation function of MC(...)).
+	And, of course, determining an actual clique of such size simply requires repeating this entire procedure on the closed neighborhood-graphs of each individual node.
+#######################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
