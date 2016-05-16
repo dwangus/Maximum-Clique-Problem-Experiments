@@ -1,0 +1,62 @@
+Interesting Stats...
+
+125:
+avg MIS of graph (AvMIS_G) -- 3.184, sum of MIS of solution 104, avg MIS of solution (AvMIS_S) 3.05882 // edge density 0.891264, std 0.0302073220263
+
+Running-sum of MIS’s / N
+Vs.
+Edge density – 2*std(edge densities)
+
+///////////
+
+250:
+avg MIS of graph -- 3.928, sum of MIS of solution 165 (the other solution was 166!), avg MIS of solution, 3.75 (or 3.7727 for the other solution) // edge density 0.895488, std 0.0190794616276
+
+Sqrt(Running-sum of MIS’s / N)
+Vs.
+Edge density – 4*std(edge densities)
+
+OR 
+
+(Edge density – 4*std(edge densities))^2 * N
+
+Vs.
+
+Running-sum of MIS’s
+
+//////////
+Huh... AvMIS_S/AvMIS_G for 125 = 0.96068467336...
+
+and... AvMIS_S/AvMIS_G for 250 = 0.96046334012...
+...barely any difference...
+(let's call this the ARatio)
+//////////
+So...
+predicted, for 500:
+
+(Edge density – 8*std(edge densities))^4 * N = Running-sum of solution MIS's
+(Running-sum of solution MIS's/AvMIS_S) = Solution Size
+AvMIS_S = 0.96*AvMIS_G
+Solution Size = ((Edge density – 8*std(edge densities))^4 * N)/(AvMIS_G*0.96)
+
+We have 4.132 = AvMIS_G
+and
+0.898656 = edge density
+0.0134486305623 = std(edge densities)
+N = 500
+
+Hmm... at 8 and 4 coefficients (let's call them stdC and P), we get a predicted 49.36...
+At stdC = 6 and P = 4, we get a predicted 56.42...
+At stdC = 6 and P = 3, we get a predicted 68.98...
+And... if we change the difference between AvMIS_S/AvMIS_G to be... instead of 0.96, it's now ARatio_125 - sqrt(ARatio_125 - ARatio_250),
+then we get, at 6 and 5, 57.27...
+
+...
+No, I'm going to stop guessing now. This is all random maths.
+
+
+
+
+
+
+

@@ -310,7 +310,7 @@ Added notes to Heuristic 4):
 	MCNSID = [integral(MC'(x)dx) - integral(k*sigmoid(-beta4, (N-2)(xi - ...)^2)dx)]
 	and, new function NSDD (nested sigmoidal derivative difference),
 	NSDD = [d(MC'(x))/dx - d(k*sigmoid(-beta4, (N-2)(xi - ...)^2))/dx]
---> Note: seems to be best if I vary the beta2 w/ antitheta to be ...medium?, the beta1 w/ theta to be ...medium?, the beta3 in the outer sigmoid to be large, and the beta4 in the added "flood term" of MC'(...)
+--> Note: seems to be best if I vary the beta2 w/ antitheta to be ...medium?, the beta1 w/ theta torc be ...medium?, the beta3 in the outer sigmoid to be large, and the beta4 in the added "flood term" of MC'(...)
 	to be ~1.
 	--> Because, in reality, the "peaks" being detectable in the 2D graph vary largely on beta1 and beta2... as in, a large beta3 ensures that, for all values of x in the
 		2D graph, such values of x that achieve a height k in MC'(...) get 0'd out very quickly, and setting beta4 to 1 allows for a "normal frame of reference",
@@ -341,8 +341,8 @@ Added notes to Heuristic 4):
 
 --> What if... instead of transforming MC'(...) into one dimension for MCNSID and NSDD... I instead just integrated over all dimensions to find the N-dimensional-manifold-surface-area and compared
 	the values? Two notes immediately come to mind: this approach would actually work better if I varied beta2 to be smaller (as lower-dimensional "widths" that are narrow would barely contribute
-	to the overall value of the integral over all dimensions). More importantly... the second note: it might not be possible to integrate. Nesting sigmoidal functions within each other... might be
-	impossible to integrate as a result. (Buuut, I mean... it might be possible to approximate?) But the fact that as c varies, k = c*(c-1)/2 varies a lot faster helps "counter" the "thin-ness" of
+	to the overall value of the integral over all dimensions). More importantly... the second note: it might not be possible to integrate (confirmed). Nesting sigmoidal functions within each other... 
+	might be impossible to integrate as a result. (Buuut, I mean... it might be possible to approximate?) But the fact that as c varies, k = c*(c-1)/2 varies a lot faster helps "counter" the "thin-ness" of
 	lower-dimensional planes...?
 	--> Wait... if I have MC'(...) and (k*sigmoid(-beta4, theta2) = ) Reference-Sigma(k), if I compare integrations across each INDIVIDUAL dimension... if any of them are different, then we know
 		that there exists other, local optima I'm not considering... right? (Well, the "thin-ness" of lower-dimensional planes still exists as a problem...)
@@ -352,6 +352,7 @@ Added notes to Heuristic 4):
 		beta3, a "modest" beta1 and beta2 (but not too modest, definitely still needs to be steep, steep enough that "combinatorial explosion" summations over tiny, tiny values in the fringes
 		of the sigmoid function don't actually end up counting for anything), and see when c eventually (but definitively) varies to 0 (when beta3 approaches infinity)... Does that work?
 		--> Ah... hahahaha... fuck. Integrating antiMC'(...) over N dimensions... leads to 2^N terms to evaluate, eventually... Wow, shit.
+			--> http://link.springer.com/chapter/10.1007%2F978-94-009-3889-2_23
 --> ...Can you use interval analysis in conjunction with my usage of "zero-then-flood" technique? I.e., bound the range of values considered (like, guess an upper bound to the size of the max clique,
 	and then only search for local optima within the "intermediate shell"/intermediate space between the original (N-1)-sphere and the (U(N)-1)-sphere? ...But, I mean, that still doesn't prevent 
 	you from finding local optima at the fringes of the inner-sphere...
@@ -364,12 +365,122 @@ Added notes to Heuristic 4):
 -- https://en.wikipedia.org/wiki/Duality_%28optimization%29
 -- https://inst.eecs.berkeley.edu/~ee127a/book/login/l_dual_weak_lag.html
 	--> These, too, seem to be strongly, intrinsically tied to what I'm attempting...
+
+-- Somehow substituting MC'(...) into itself...? Creating a new dimension that varies with time? What??? (If I evaluate one point, I CAN'T MOVE FROM THAT POINT -- i.e., I can't use the information at that
+	point to influence the values at other points)
+
+-- Last, real, approach is to solve analytically for x (if it's even possible)
+
+-- Last note before I go back to studying for finals at 2:50am lol:
+	--> MC'(...) modified = (1.0 - sigmoid(beta3, MC(...)-k-1))*MC(...)
+	--> After each iteration, wherein I find local optima of greater and greater height k, I make beta3 sharper, and I relax beta1 and beta2 more (because at least, if I relax beta1 and beta2
+		gradually after greater k are found, I'm less likely to have orders-of-magnitude-of local optima "collapse" and have sum of their intermittent "fall-off" values actually reach this
+		newer height k (which we vary w/ c, actually, not k)
+		--> And, of course, interval analysis is always a thing
+		--> + Numerical approximations for integration (since you can't actually integrate, analytically, a nested sigmoidal function -- like even sigmoid(1, x^2 + y^2) is unapproachable)
+		--> Also, it might help to consider having the n-spheres be bigger than the in-sphere, and smaller than the circum-sphere... or wait, smaller than the in-sphere? Idk, I'd have to figure this out
 #######################
+#######################
+Added notes p.2 to Heuristic 4):
+-- Ah shit, specifying a k-sphere in higher dimensions w/ redundant "variables" requires parameterizing everything... which is a huge pain in the ass. (AKA a circle in 3D requires the center, the radius, and
+	enough vectors (so in this case, 2) perpendicular to each other to create a unique span/plane of that dimension, and then writing the N variables of the N-dimensional space in terms of k variables...)
+	...So, what I'm instead going to do is have a redundant dimension that simplifies the math a bit. So, N nodes begets N dimensions to specify each node's coordinates in N-dimensional space. If the
+	equidistant spacing between nodes is supposed to be s, then each node-coordinate will be something like <...0,0, s/sqrt(2), 0,0,...>
+	--> Ah... shit, that'll make the above conjecture clearly false though...
+-- http://www.math.tamu.edu/~yvorobet/MATH304-503/Lect3-07web.pdf --> slide 10
+-- Antitheta is the distance from a coordinate point to the bounded region of subspace spanned by the lower-dimensional k-sphere (can be obtained through Gram-Schmidt process) (NOT the entire subspace itself!!!)
+	--> Need to research "distance from point to span of vectors", "distance from point to n-sphere", "how to describe span of vectors", "equation of sphere in 4d", "how to determine if two spans intersect"
+-- Also notes to self: for theta in the edge-function... apparently we need it to be the circum-sphere's radius? Otherwise, for some collapsed, 1-dimensional parabolas, there exists no solution to f(x)...
+	Which kind of makes sense, as a mid-sphere or in-sphere might be excluding regions of higher-dimensional space when collapsed to 1-dimension. Still though, do we have to worry about, with circum-spheres,
+	"exclusive" regions of space belonging to mutual groups of neighbors...? (And by the way, as each term in MC(...) can only be 1, and there are only so many edges, the value of MC(...) is bounded by the
+	number of edges in the original graph, so as long as we stay well below that threshold with a large beta3 (and I guess betas 1 and 2), we should be fine about any "combinatorial explosions")
 
+-- So, we've been able to confirm that (at least with a circum-sphere radius), that differing thetas for differing edge-functions will always pretty much have differing ranges of x in the collapsed 1-dimensional
+	case... but we've yet to confirm that for antitheta (which is actually the more important of the two to confirm -- theta bounds it to a range, but antitheta bounds it to pretty much a single value (also, we
+	have yet to confirm that the value antitheta yields will always FALL within the range of x-values given by theta))... nor have we been able to definitively confirm that different groups of nodes 
+	(as determined from mutual neighbors for each edge-function) and their k-spheres occupy mutually exclusive regions of space, except for overlapping between shared mutual neighbors...
+	--> To take the simplest example of mutually exclusive regions of space, imagine edges AB, AC, AD, AE, BC, BD, BE, CE -- (AB) will contribute a sum of 1 to the group ABCDE, (AC, AE, BC, BE, CE) will 
+		contribute a sum of 5 to the group ABCE, and (AD, BD) will contribute a sum of 2 to the group ABD... Now, does regions ABCE and ABD simply share the edge AB?
+		--> Furthermore, we DON'T want their sharing of edge AB to show... which is why a bit smaller than an in-sphere was proposed... but we don't necessarily have a choice if we collapse it to 1-dimension.
+			--> You could always... bound the region of searched space (at least in higher dimensions -- the reverse doesn't hold in 1 dimension)? AKA, not include the edges of the entire region of space...
+				And you could go a step further, only searching towards the inner part of the region of space, to exclude lower cliques...? ...Is this going to be a problem?
+				--> ...Am I confused or something? I keep flopping back and forth... I now think that the radius definitely HAS to be larger than the in-sphere's radius (else there'd be no overlap in the
+					first place...)...
+	--> Remember, you can just blindly use Gram-Schmidt Process to find the distance from a coordinate point to a lower-dimensional subspace... it "zeroes" everything out in the process, so if you did collapse it
+		into 1-dimension, you're left with cx, where c is some coefficient -- you can't solve for x because the center of the subspace (i.e. the center of the k-sphere) was "zeroed" out in order to make the 
+		calculations of the distance more feasible... gotta find a way to preserve this...
+#######################
+#######################
+Added notes p.3 to Heuristic 4):
+-- Ah, ok, I finally found the way to make exclusive regions of space. (And I see no reason why it shouldn't work with N dimensions vs. N-1 dimensions, to make the calculations easier)
+	--> You have to VARY THE RADIUS of the k-sphere based off what size-of-max-clique c you're trying to guess. Take, for example, a sphere whose center coincides with a tetrahedron's in 3D space. If you
+		vary the radius of the sphere to be 0, it's a point -- and it will ONLY touch the center of the tetrahedron. If you vary the radius to be an in-sphere, then it touches the centers of the
+		4 triangle-faces of the tetrahedron -- it's touching the center of PLANES of 2D. If you vary the radius to be a mid-sphere, then it's touching the midpoints of all EDGES of the tetrahedron
+		-- AKA, it's touching the center of LINES of 1D. And finally, if you vary the radius to be a circum-sphere, then it's touching all vertices of the tetrahedron, all of 0D.
+	--> Thus, you have your same old equations, with f(beta1,beta2,x,y,z,w,v,a,b,c...) as an edge-function, of MC(...) = sum(f(...)), of MC'(beta3,...) = (1 - sigmoid(beta3, MC(...) - k-1))*(MC(...)),
+		except, this time, within f(...), while theta and antitheta are held constant (and in N dimensions, it's much easier to compute antitheta and theta), the radius^2 is varied accordingly:
+		--> radius = distance(center of group of mutually-shared nodes from viewpoint of specific edge, center of random sub-group of size-c of group of mutually-shared nodes)
+		--> And furthermore, if the guess size c is the same as the size of the group of mutually-shared nodes, then the radius is 0; otherwise, if it's smaller, then the radius is negative infinity
+-- ...This still doesn't help me figure out what to do with a "zeroed-out" graph of higher-dimensions... 
+#######################
+#######################
+-- Local Optima Integers Gradient Ascent
+-- How to find an adequate starting point on the lower bound once you've zeroed out the space
+-- Uniform sphere approximation?
+-- Start from upper bound shell from center (once you have an estimate)
 
+-- RandomFind + Merging Maximal Independent Sets!!! Should drastically decrease upper bound
+	--> It doesn't... and I think I FINALLY understand why it doesn't. When I merge a max independent carrying a Max-Clique-Candidate,
+		what I can end up doing is merging a maximally independent set such that this first MCC is now connected to another MCC (and perhaps
+		multiple other MCC's) that it wasn't connected to before... meaning that whatever max clique the other MCC was connected to, now 
+		has just increased by 1 in size.
+	--> Not to mention, that my reasoning is fundamentally flawed... 
 
+-- Coupling maximal independent sets (negative weights) with a variety of approaches??? I.e. vector-projection method, negative regions in Heuristic 4), etc.
+#######################
+#######################
+Added notes p.4 to Heuristic 4):
+-- ...What if I... so you have MC'(...), of N variables. What if... I created a new function, MC''(...). And this is what it was:
+	--> For every possible pair of N variables (so x-y, y-z, x-z, etc.) we create a modified version of MC'(...). So if
+		f(x,y,z) was (x-3)^2 + (y-2)^2 + z, then the modified f(y,x,z) would be (y-3)^2 + (x-2)^2 + z.
+	--> We then define MC''(...) to be the sum of all versions of MC'(...). 
+		...Because... unless the max clique lies at the center of the entire region of space, at the center of the N-sphere...
+		implying that the max clique size is of N itself... every region in space that coincides with a +1 point from each
+		term in MC(...) must have some axis of symmetry wherein the position it's reflected does not stay still.
+	--> What does this mean, and why does it make things feasible? ...We couldn't, before, reduce things down to one dimension.
+		Meaning, we couldn't cast a shadow against some specific axis (rendering other variables pointless in MC(...)), as
+		the point defined in the higher-N-dimensional plane achieved some of its "k-value" depending on one or more variables
+		that became redundant in the very process of dimensional-reduction. Meaning, that, once we reduced it to a specific axis,
+		some terms that may have been able to exist above the set k-threshold in a higher dimensional space (if we evaluated the
+		function at that specific point with multiple coordinates) would lose some of its k-value and be "zeroed-out" in the process --
+		and therefore, once we cast the "axis-shadow", we wouldn't know it was there. It would "fly under the radar" and be undetected.
+		Thus, if we looked at it vs. one specific dimension, we wouldn't be able to tell by the axis-shadow if there existed some point
+		in the higher-dimensional space that achieved a clique of greater size than what we were predicting -- AKA, if there was a point,
+		in a simple y-v.-x 2D graph, where x was > some value of k for y.
+	--> HOWEVER... If we create this new function MC''(...), as a sum of N^2 MC'(...) terms, rotated across all possible axes... what happens
+		is that, if we are to look at a certain dimension (and ONLY that dimension) -- for example, we choose to ignore all terms except
+		for x in MC''(...) (not that we set all other variables EQUAL to X in the function... there's a subtle difference) -- then, at 
+		some point, we'll have swapped out the "lost" k-value from another variable with x in a linearly separable (as it's still a sum
+		of terms, each individual term still zeroing-out if the original term falls beneath a set-certain k-threshold -- and that's
+		beautiful) fashion. Meaning, while other terms above the threshold might get a "boost" and appear WAY over the threshold (up
+		to N^2 times higher than it originally was), all other terms that would have been "undetected"... finally do appear. And it doesn't
+		matter that other points in the x-dimension get evaluated way higher -- all we care about are whether there EXISTS points above
+		the threshold or not. So if we get to see ALL of the ones above the threshold, even if some of their values are now over-exaggerated...
+		It still answers the question. Does there exist a point in this higher-dimensional space with a value of k higher than the one we set?
+		If there are none... the no. Else, yes.
+	--> Of course... the biggest caveat is that, even if this is bounded... what, we have N^2 functions for each edge going into MC(...)...
+		then we have nested sigmoidal functions of MC(...) multiplied as another factor to MC(...) for MC'(...)... so that's already N^4 individual 
+		terms... and THEN, we have N^2 VARIATIONS of MC'(...) all summed together to create MC''(...)... AND THEN, we have to, for values 1 < c <= N,
+		check all variations of k = c(c-1)/2, in one dimension, to see if there's a point above the k-threshold we're setting. 
+		All in all... that's O(N^6) steps for the clique-decision problem, O(N^7) steps for the max-clique problem... O(N^8) if we want to find actual
+		members of the max clique, by looking at the closed neighborhoods of each individual node...
+		Which... all in all, is realistically infeasible.
 
+			But it's bounded.
 
+-- Now, all that's left is to... check the math with someone far more credential-ified than I am, haha. See if there are any logical holes in my algorithm.
+#######################
+#######################
 
 
 
