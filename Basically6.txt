@@ -459,10 +459,11 @@ Added notes p.4 to Heuristic 4):
 		in a simple y-v.-x 2D graph, where x was > some value of k for y.
 	--> HOWEVER... If we create this new function MC''(...), as a sum of N^2 MC'(...) terms, rotated across all possible axes... what happens
 		is that, if we are to look at a certain dimension (and ONLY that dimension) -- for example, we choose to ignore all terms except
-		for x in MC''(...) (not that we set all other variables EQUAL to X in the function... there's a subtle difference) -- then, at 
-		some point, we'll have swapped out the "lost" k-value from another variable with x in a linearly separable (as it's still a sum
-		of terms, each individual term still zeroing-out if the original term falls beneath a set-certain k-threshold -- and that's
-		beautiful) fashion. Meaning, while other terms above the threshold might get a "boost" and appear WAY over the threshold (up
+		for x in MC''(...) (so ultimately, change all N-sphere equations to equations of x-parabolas (radius held constant), and ignore all terms in antitheta that do not
+		possess x -- if there are none, those 2 functions reduce to evaluating to 1, always) (not that we set all other variables EQUAL to X in the function... 
+		there's a subtle difference) -- then, at some point, we'll have swapped out the "lost" k-value from another variable with x in a 
+		linearly separable (as it's still a sum of terms, each individual term still zeroing-out if the original term falls beneath a set-certain k-threshold -- 
+		and that's beautiful) fashion. Meaning, while other terms above the threshold might get a "boost" and appear WAY over the threshold (up
 		to N^2 times higher than it originally was), all other terms that would have been "undetected"... finally do appear. And it doesn't
 		matter that other points in the x-dimension get evaluated way higher -- all we care about are whether there EXISTS points above
 		the threshold or not. So if we get to see ALL of the ones above the threshold, even if some of their values are now over-exaggerated...
@@ -476,9 +477,8 @@ Added notes p.4 to Heuristic 4):
 		members of the max clique, by looking at the closed neighborhoods of each individual node...
 		Which... all in all, is realistically infeasible.
 
-			But it's bounded.
-
--- Now, all that's left is to... check the math with someone far more credential-ified than I am, haha. See if there are any logical holes in my algorithm.
+			But it'd be bounded.
+-- Lol, jk, 6AM rambling with no sleep -- my entire thing is flawed. Lulz.
 #######################
 #######################
 
