@@ -481,11 +481,69 @@ Added notes p.4 to Heuristic 4):
 -- Lol, jk, 6AM rambling with no sleep -- my entire thing is flawed. Lulz.
 #######################
 #######################
+Cycle through NP-Complete conversions to see what happens to the problem over several iterations?
+"prove 3sat is np complete"
+"circuit-sat to 3-sat"
+https://en.wikipedia.org/wiki/Circuit_satisfiability_problem
+#######################
+#######################
+I spent way too much time today doing this, but... if you have MC'(...), you take the derivative, square it, and integrate it, then check for positive values,
+it might seem possible...? The only thing was that... if the derivative of f(x) is f'(x), then can you write the antiderivative of (f'(x))^2 in terms of f(x)?
+If so, and if feasibly computable, then you don't actually need to take the derivative of MC'(...) with respect to so many variables, and you'd still be able to
+find out if there were any "peaks" in your graph by deriving, squaring, then integrating (as any negative gradient descent changes would now be positive, and the
+peaks are presumably spread out enough and beta3 large enough that you wouldn't need to worry about overlapping between peaks)...
+Notes to Self: 
+Derivative of Sigmoid(1, x^2 + y^2 + z^2 + a^2) with respect to x,y,z,a = 
+(16*axyz*e^(a^2 + x^2 + y^2 + z^2)*(11e^(a^2 + x^2 + y^2 + z^2) - 11e^(2(a^2 + x^2 + y^2 + z^2)) + e^(3(a^2 + x^2 + y^2 + z^2)) - 1))/(1 + e^(a^2 + x^2 + y^2 + z^2))^5
+The first factor (16) doubles, but the inner term in the numerator only expands by 1 each time, and the bottom denominator just increases its power by 1...
 
+...That's not to mention nested sigmoids...
+#######################
+#######################
+3 More Heuristics:
+1) Do Random Find again, but this time, weight it against (as you find the maximal clique) how quickly picking the closed neighborhood of this successive node affects
+	the drop-off in edge density, relative to how many remaining edges/connections this one node has
+2) N-Body Convergence again, except this time, as they begin clumping before the center, record which nodes begin to clump with which other nodes as time goes on
+3) So have N "mock" nodes that move "one step" in the direction of their neighbors in the beginning -- record the center of the slightly-moved mock-nodes. Then, shuffle the 
+	starting positions of the actual nodes in N-1 dimensions. From this new, random starting point, let the mock-nodes move one-step again in the direction of their 
+	neighbors. Record this new center; note in which direction it moved, and how far it moved from the last center (as a percentage of distance of a max possible distance
+	of "one-step"). Clearly, there is a half of nodes that this direction moved towards, and a half that this direction moved away from. You have the choice of either
+	a) adding to half of the nodes an equal value multiplied by the percentage-distance-factor, or b) adding a graduated positive value to half of the nodes multiplied by
+	the constant percentage-distance-factor (based on inverse proportion to the closeness of the angle), and subtracting a graduated value to the other half, multiplied by 
+	the same factor. Do this for several iterations, and then pick out the node with the highest value, and begin again on its closed neighborhood.
+	--> Should test this on the worstCaseGraph to see how it does first
+	--> Oops, the "percentage-distance-factor" is wrong, the center can jump extremely large distances between iterations. It's better to just record each node's last position
+		and then, based on ...?, use that as a multiplied-factor instead?
+		--> If we go with choice b), shouldn't the angle take care of that...? Like, basically, the dot product between the last center and new center's vector and the last
+			center and new node's position's vector?
+--> In fact, should test all of them on the worstCaseGraph
+#######################
+The art of literature is in simultaneously meaning what is unwritten and writing all that can be meant. // Hmm... parallels in the dual-body problem, 
+	in the max independent set vs. max clique, in the question of P=NP... The sort of... simultaneous action that leads to decisive truth and art that 
+	explains both the known and unknown in one fell swoop. A beautiful cohesion, wherein the pattern of pauses you left in-between somehow captured everything 
+	you left out. And the very thoughtful-effortless intention of it... can only be described as a pinprick of God.
+Finding out who's part of the solution is the same as finding out who's not part of the solution... // Cycling through identical transformations of other 
+	NP complete problems only to arrive at an identical or different graph...? And what if you remove one node from the original graph and run it through the 
+	transformations, how does its final transformation compare if you hadn't removed that node? Transforming max clique into number partition?
+http://www.ted.com/talks/mariano_sigman_your_words_may_predict_your_future_mental_health
 
+"My guess is that he meant neither financial instability nor bad sex would raise divorce rates necessarily, but that financial stability or good sex lowered divorce rates. 
+So if you looked at a sample and held all other variables equal, couples who don't have a good sex life, or couples who are financially unstable would not get divorces 
+significantly more often than an average couple.
+However, couples who have a strong sex life or couples who have a high degree of financial stability would tend to stay together more often than the sample's average."
+...For some reason, made me think of NP complexity...
+#######################
 
+***The true problem of the MCP, as it's always been, is: is there some property that separates all graphs with <= x-size cliques, from identical instances of graphs, 
+	but with just the minimum number of edges added that form one x+1-sized clique?
+	- I know that, if you have an instance of the worstGraph(5,2), completing any of the missed connections completes 2 6-cliques.
+	- ...Creating information about the structure of an unknown graph, then discovering how many checks have to be made to identify a +1 clique, and then how
+		many checks would it take to confirm the structure of the graph ad-hoc?
+		- ...if you can find an instance of some type of structured graph (the information is given), of which you can prove that you cannot know if there exists
+			a clique of > x, then there is at least one instance of a graph which cannot be determined in polynomial time -- and thus, NP != P.
 
-
+https://en.wikipedia.org/wiki/Comparison_sort#Number_of_comparisons_required_to_sort_a_list
+-- Proving NP != P requires... proving that "given any heuristic x, can design an edge case graph"
 
 
 
