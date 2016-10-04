@@ -518,41 +518,6 @@ The first factor (16) doubles, but the inner term in the numerator only expands 
 			center and new node's position's vector?
 --> In fact, should test all of them on the worstCaseGraph
 #######################
-The art of literature is in simultaneously meaning what is unwritten and writing all that can be meant. // Hmm... parallels in the dual-body problem, 
-	in the max independent set vs. max clique, in the question of P=NP... The sort of... simultaneous action that leads to decisive truth and art that 
-	explains both the known and unknown in one fell swoop. A beautiful cohesion, wherein the pattern of pauses you left in-between somehow captured everything 
-	you left out. And the very thoughtful-effortless intention of it... can only be described as a pinprick of God.
-Finding out who's part of the solution is the same as finding out who's not part of the solution... // Cycling through identical transformations of other 
-	NP complete problems only to arrive at an identical or different graph...? And what if you remove one node from the original graph and run it through the 
-	transformations, how does its final transformation compare if you hadn't removed that node? Transforming max clique into number partition?
-http://www.ted.com/talks/mariano_sigman_your_words_may_predict_your_future_mental_health
-
-"My guess is that he meant neither financial instability nor bad sex would raise divorce rates necessarily, but that financial stability or good sex lowered divorce rates. 
-So if you looked at a sample and held all other variables equal, couples who don't have a good sex life, or couples who are financially unstable would not get divorces 
-significantly more often than an average couple.
-However, couples who have a strong sex life or couples who have a high degree of financial stability would tend to stay together more often than the sample's average."
-...For some reason, made me think of NP complexity...
-#######################
-
-***The true problem of the MCP, as it's always been, is: is there some property that separates all graphs with <= x-size cliques, from identical instances of graphs, 
-	but with just the minimum number of edges added that form one x+1-sized clique?
-	- I know that, if you have an instance of the worstGraph(5,2), completing any of the missed connections completes 2 6-cliques.
-	- ...Creating information about the structure of an unknown graph, then discovering how many checks have to be made to identify a +1 clique, and then how
-		many checks would it take to confirm the structure of the graph ad-hoc?
-		- ...if you can find an instance of some type of structured graph (the information is given), of which you can prove that you cannot know if there exists
-			a clique of > x, then there is at least one instance of a graph which cannot be determined in polynomial time -- and thus, NP != P.
-
-https://en.wikipedia.org/wiki/Comparison_sort#Number_of_comparisons_required_to_sort_a_list
--- Proving NP != P requires... proving that "given any heuristic x, can design an edge case graph"
-
-
-
-
-
-
-
-
-
 
 
 

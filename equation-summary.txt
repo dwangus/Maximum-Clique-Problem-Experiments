@@ -1,0 +1,171 @@
+Imagine N points in N-1 dimensional space, all equidistant from one-another.
+
+Now, imagine that you are given a coordinate point within the region bounded by these equidistant N points.
+If that coordinate point lies at (approximately) the exact center of any subset of the equidistant N points,
+and let's call the size of that subset = k, then the value of that coordinate point is equal to k(k-1)/2.
+
+Now, instead, imagine that each pair of points either has a relation between them or not. One can imagine that
+this set of N points and their relations -- or edges -- can be modelled as a graph. And furthermore, let's say
+that each unique edge in this graph has an associated function that adds a value of 1 to a given, local region 
+in this (bounded) N-1 dimensional space.
+
+For a given edge, what defines "local" in the region it adds a value of 1 to? 
+(And on a note, "adding a value of 1" means that, if you were to pick a coordinate point in this "locally" 
+bounded region, it could be evaluated by some TBD function to give a value >= 1, because this specific edge's 
+associated function simply "adds" 1 to the value of all points in this local region)
+Let us say that, for a given edge, the region it adds a value of 1 to is exclusive to the subset of N points
+that include the edge's endpoints, and all those endpoints' shared mutual neighbors. Why? 
+
+Well, for starters, imagine the center coordinate of any subset k of the total N points, still in this N-1
+dimensional space. Now imagine that, for all pairs of edges that can exist between these k points, all do indeed
+exist -- except for one. Then, this center coordinate of the k-subset of N total points would be evaluated to
+have a value equal to k(k-1)/2 - 1, which clearly indicates that this k-subset is not a k-clique in this "graph".
+For every other existing edge amongst this k-subset, however, in order to encompass this center-coordinate of the
+k-subset within the defined "local" region of its associated function (to add 1 to), its defined "local" region
+is clearly (from the viewpoint of the edge) a space exclusive to AT MOST the edge's endpoints and all their 
+shared mutual neighbors within the overall graph of N points. And clearly, a space exclusive to this edge's
+endpoints and all of their shared mutual neigbors would simply be the bounded region of space between this
+subset of equidistant points.
+
+This is to say -- every possible k-subset of these N points "receives" an exclusive space (in lower dimensions
+than the overarching higher-dimensional N-1 space, and "exclusive" by virtue of their equidistance to one-another), 
+and every coordinate point within this exclusive space has a value distinctly equal to the number of edges existing 
+between the subset of points -- and can never exceed the value k(k-1)/2.
+
+Clearly, then, the coordinate points within the bounded region of space with the highest value (again, evaluated
+in the TBD function) MUST correspond to regions of space belonging to the biggest cliques in the graph -- as, given
+that there must be a clique of maximum size S in any graph with > 0 edges (S in the range from 2 to N), and the region 
+belonging to any such max clique in a graph will have its encompassing coordinate-points evaluated to S*(S-1)/2.
+
+Finding any such coordinate-points with the highest value is clearly a challenge -- one cannot know where to
+begin searching in the N-1 dimensional space. 
+However, if each edge's associated functions (from here on out, termed "edge-functions") were continuous throughout 
+the N-1 dimensional space, and if one could filter out all coordinate points throughout the space that fell below a 
+specified value by setting their values to 0, one could theoretically sum all of the edge-functions into one function 
+that represented the summed "edge" values at each coordinate point, guess a size k for the existing max clique in the graph, 
+apply that filter to all points throughout the bounded region whose value fell below k(k-1)/2, and then, perform an N-1 
+dimensional integral over the entire bounded region. The value returned from that integral would either be 0 or some 
+value > 0 (probably still very close to 0, but, presumably, detectable). If the value returned is non-zero, then there
+should, in theory, exist points with a value >= k(k-1)/2 -- i.e., a clique of size k exists in the graph.
+
+Thus, in performing the above process iteratively, incrementing k by 1 each time until the value returned from the 
+integral is 0, one can determine the size of the max clique in a given graph.
+
+But clearly, 4 questions still exist:
+1) How do we approximate the edge-functions to make them continuous and still pertain to local, "exclusive" spaces?
+2) How would we filter out points, setting their new value to 0?
+3) How do we detect a value returned from the N-1 dimensional integral to be non-zero, if the regions of space with the
+	non-zero values (after the applied filter) are of lower dimensions?
+4) How would we perform such an integral -- is it mathematically possible, and can it be done or at least approximated in 
+	polynomial time?
+
+Well, #4 is still in question.
+
+#1: Each edge-function = f(N# of variables) = 
+	(1/(1 + e^(beta1*theta))]*[4*(1/(1 + e^(beta2*antitheta)))*(1/(1 + e^(-beta2*antitheta)))]), or visualized:
+	 ___				___		 ___				___		 ___				___
+	|						|	|						|	|						|
+	|		  1				|	|			4			|	|			1			|
+	|  __________________	| * |  ___________________	| * |  ___________________	|
+	|		   (B1*T)		|	|		   (B2*A)		|	|		   (-B2*A)		|
+	|	(1 + e^		 )		|	|	(1 + e^		 )		|	|	(1 + e^		 )		|
+	|___				___	|	|___				___	|	|___				___	|
+
+	where
+	
+	T = theta = a k-sphere (k = # of points in subset of N including endpoints of edge and mutually shared neighbors),
+		with its center at the center of the k-subset of points, and as for its radius...
+		(e.g., if we consider the subset of points to each have a relevant "axis" or "dimension", then we can consider
+		the k-sphere to be dependent upon a k-subset of the N variables needed to describe the N-dimensional space (switching
+		it to N dimensions to make the calculations easier -- just so long as the N points themselves remain equidistant),
+		and therefore, if the dependent variables are, say, x y z, theta = (x - ...)^2 + (y - ...)^2 + (z - ...)^2 - radius^2,
+		where the "..." signify the respective coordinates of the center of this subset of points within the N-dim. space)
+		
+		The radius is varied with the guess of K for the max clique size in the graph, for every given iteration (i.e., you 
+		are changing the equation after evaluating the integral at each iteration).
+		If 	K = k, radius = 0; 
+			K > k, radius = -inf.; 
+			K < k, radius = distance(center of k-subset, center of a random K-subset of the k-subset);
+		(Rationale: Take, for example, a sphere whose center coincides with a tetrahedron's in 3D space. If you vary the 
+			radius of the sphere to be 0, it's a point -- and it will ONLY touch the center of the tetrahedron. If you vary 
+			the radius to be an in-sphere, then it touches the centers of the 4 triangle-faces of the tetrahedron -- it's 
+			touching the center of PLANES of 2D. If you vary the radius to be a mid-sphere, then it's touching the midpoints of 
+			all EDGES of the tetrahedron -- AKA, it's touching the center of LINES of 1D. And finally, if you vary the radius 
+			to be a circum-sphere, then it's touching all vertices of the tetrahedron, all of 0D.)
+	
+	A = antitheta = going along with the analogy of "dependent" and "independent" variables, if there were independent
+		variables say, a b c, then antitheta = (a - ...) + (b - ...) + (c - ...), where the "..." again signifies the center
+		of the k-subset of points.
+		
+		(This is to make it such that any coordinate points outside the scope of the k-sphere vary rapidly to a value of 0, 
+		as per the sigmoid function)
+	
+	B1 & B2 = varied values that control the rate at which the values of coordinates outside the edge-function's "local", 
+		exclusive region of space fall to 0 in the sigmoid function -- i.e. making it so that each subset of points for a given
+		edge adds 1 to points only in the region of space exclusive to them. (More on this later)
+		//B1 controls the rate for how values fall to 0 from the edge of the k-sphere within this exclusive region of space
+		//B2 controls the rate for how values fall to 0 outside the exclusive space for this k-subset of points
+	
+The resulting function representing the value of every coordinate point within the bounded region of space is the summation
+of all "edge-functions" within the graph -- i.e. MCV(N# of variables) (i.e. Max-Clique-Value) = sum(f(...) for each e in {E})
+
+
+#2: MCV'(..., guessK) is the MCV function after the filter has been applied, for a given guess of max-clique-size K,
+		with guessK actually representing K(K-1)/2.
+	MCV'(..., guessK) = 
+		(1.0 - sigmoid(beta3, MCV(...)-(guessK)-1))*MCV(...) 
+		(optional!) + [(guessK)*sigmoid(-beta4, theta2)]*[sigmoid(beta3, MCV(...)-(guessK)-1)], 
+		or visualized:
+																						(optional term!************************************************************)
+		 ___												___							 ___				___		 ___										___
+		|														|						|						|	|												|
+		|					  1									|						|		guessK			|	|			1									|
+		|	1.0   -	  __________________						| * MCV(...)	+   	|  ___________________	| * |  ___________________							|
+		|					   [B3*(MCV(...) - guessK - 1)]		|						|		   (-B4*T2)		|	|		   [B3*(MCV(...) - guessK - 1)]			|
+		|				(1 + e^		 )							|						|	(1 + e^		 )		|	|	(1 + e^		 )								|
+		|___												___	|						|___				___	|	|___										___	|
+		
+	where 
+	
+	T2 = theta2 = an N-sphere, with coordinates at the center of the entire N-dimensional bounded region of space, and its
+		radius is 0.9999... * the radius of the circumscribed sphere onto the set of N points. 
+	
+	B3 & B4 = similar to B1 & B2
+		//B3 controls the rate at which values fall to 0 at coordinate points whose values fall below the specified guessK value.
+		//B4 controls the rate at which values fall to 0 outside of the bounded region of the entire N-dimensional space
+	
+	(Note: because values are being approximated, we specify that values at coordinate points fall to 0 once below guessK - 1,
+		instead of below guessK, since in the sigmoid function, f(x @the inflection-point) is still = 0.5; we translate the 
+		sigmoid function backwards 1 along the horizontal axis to compensate, such that f(x = guessK) ~= 1.0)
+		
+In essence, the first term of MCV'(...) specifies that all coordinate points whose value falls below guessK are subtracted by
+their value and set back to 0 (or at least a value very close to 0); I call this the "zero-out" technique.
+The second (optional) term of MCV'(...) essentially adds back in a value of guessK to all coordinate points whose value fell
+below guessK -- i.e., having all coordinate points within the bounded region have a value = guessK or > guessK; I call this,
+instead, the "zero-out-and-flood" technique. (This was to be used with gradient ascent in mind, even if it wouldn't affect much)
+
+
+#3: ...Truthfully, I'm not sure how to distinguish the miniscule values; I also don't even know if, integrating over the entire
+	N-dimensional bounded region of space, even with tiny values at each individual point, the accumulation of just that might 
+	account for some non-zero value. 
+	...Furthermore, the rate at which lower-dimensional k-spheres fall off is dependent upon B1, B2, and B3 -- that is, B1-3
+	determine how "thin" each k-sphere is when integrated over N > k dimensions. One cannot truly hope to make the rate at which
+	0 is approached for greater guessK's faster than the rate at which lower-dimensional k-spheres are "stretched thin" before
+	integration, since both depend upon B1-3.
+	
+	How are you supposed to know if your integral returns a non-zero or zero value if your zero value is indistinguishable from
+		your supposedly non-zero value (i.e., is your miniscule value from integrating at higher dimensions or because you've 
+		guessed a max-clique-size greater than what currently exists in the graph? How does the resulting value from the integral
+		vary to 0 on greater and greater guesses of K in increasing numbers of redundant dimensions relative to the lower
+		dimensions of the actual max-clique-size in the graph? Not to mention how continuously "zeroing" out more and more of
+		the space in N-dimensions reduces the value returned by the integral...)?
+
+
+#4: Beats me. My mathematics knowledge is not deep enough to presume there exist techniques for polynomial-time approximations of 
+	N-dimensional, nested sigmoidal functions.
+	
+
+Notes to Self: At the end of the day, as values become increasingly miniscule to detect with greater values of N in
+	arbitrary graphs, it seems as though we're trading a problem of finite time to explore exponential choices to a problem
+	of finite precision to inspect exponentially small values...
+	It essentially reminds me of an inverse version of: https://en.wikipedia.org/wiki/Partition_problem
