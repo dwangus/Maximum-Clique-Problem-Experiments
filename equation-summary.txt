@@ -100,9 +100,9 @@ Well, #4 is still in question.
 		(This is to make it such that any coordinate points outside the scope of the k-sphere vary rapidly to a value of 0, 
 		as per the sigmoid function)
 	
-	B1 & B2 = varied values that control the rate at which the values of coordinates outside the edge-function's "local", 
-		exclusive region of space fall to 0 in the sigmoid function -- i.e. making it so that each subset of points for a given
-		edge adds 1 to points only in the region of space exclusive to them. (More on this later)
+	B1 & B2 = beta1 & beta2 = varied values that control the rate at which the values of coordinates outside the edge-function's 
+		"local", exclusive region of space fall to 0 in the sigmoid function -- i.e. making it so that each subset of points for 
+		a given edge adds 1 to points only in the region of space exclusive to them. (More on this later)
 		//B1 controls the rate for how values fall to 0 from the edge of the k-sphere within this exclusive region of space
 		//B2 controls the rate for how values fall to 0 outside the exclusive space for this k-subset of points
 	
@@ -130,7 +130,7 @@ of all "edge-functions" within the graph -- i.e. MCV(N# of variables) (i.e. Max-
 	T2 = theta2 = an N-sphere, with coordinates at the center of the entire N-dimensional bounded region of space, and its
 		radius is 0.9999... * the radius of the circumscribed sphere onto the set of N points. 
 	
-	B3 & B4 = similar to B1 & B2
+	B3 & B4 = beta3 & beta4 = similar to B1 & B2
 		//B3 controls the rate at which values fall to 0 at coordinate points whose values fall below the specified guessK value.
 		//B4 controls the rate at which values fall to 0 outside of the bounded region of the entire N-dimensional space
 	
@@ -159,13 +159,26 @@ instead, the "zero-out-and-flood" technique. (This was to be used with gradient 
 		vary to 0 on greater and greater guesses of K in increasing numbers of redundant dimensions relative to the lower
 		dimensions of the actual max-clique-size in the graph? Not to mention how continuously "zeroing" out more and more of
 		the space in N-dimensions reduces the value returned by the integral...)?
-
+		
+	Note to Self: At the end of the day, as values become increasingly miniscule to detect with greater values of N in
+		arbitrary graphs, it seems as though we're trading a problem of finite time to explore exponential choices to a problem
+		of finite precision to inspect exponentially small values...
+		It essentially reminds me of an inverse version of: https://en.wikipedia.org/wiki/Partition_problem
+	
+	...Wait, it might be OK to relax the "width" of lower-dimensional k-spheres, based purely on the relative spacing between
+		points in the N-dimensional space (i.e., the actual "distance" part of equidistance between the N points). After all,
+		B3 controls the rate at which values simply below guessK fall to 0 -- the cumulative effect of determining whether or
+		not the integral returns a zero or non-zero value -- whereas B2 controls the rate at which values fall to 0 for local
+		regions for a given edge-function -- i.e. how miniscule the non-zero value should be. If we keep B3 steep and relax B2
+		based on the equidistant spacing and slightly overlap "exclusive" regions of space, we can essentially achieve a
+		clearly non-zero, albeit miniscule, value returned from the integral. Of course, we need to "relax" B2 such that any 
+		cumulative overlaps that do occur between "exclusive" regions of space, let's say that the width of each relaxed 
+		k-sphere in independent dimensions is now some miniscule delta, that |E|*delta < 0.001 (such that no cumulative overlaps
+		are mistaken at any coordinate point for the added value from an edge-function).
+		
+	Solution: set B1 & B3 to be a large values, and set B2 to be a modest value.
+		
 
 #4: Beats me. My mathematics knowledge is not deep enough to presume there exist techniques for polynomial-time approximations of 
 	N-dimensional, nested sigmoidal functions.
 	
-
-Notes to Self: At the end of the day, as values become increasingly miniscule to detect with greater values of N in
-	arbitrary graphs, it seems as though we're trading a problem of finite time to explore exponential choices to a problem
-	of finite precision to inspect exponentially small values...
-	It essentially reminds me of an inverse version of: https://en.wikipedia.org/wiki/Partition_problem
