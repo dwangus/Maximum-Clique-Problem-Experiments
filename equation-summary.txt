@@ -182,3 +182,14 @@ instead, the "zero-out-and-flood" technique. (This was to be used with gradient 
 #4: Beats me. My mathematics knowledge is not deep enough to presume there exist techniques for polynomial-time approximations of 
 	N-dimensional, nested sigmoidal functions.
 	
+	http://www.aip.de/groups/soe/local/numres/bookcpdf/c4-6.pdf
+	"If the integrand is strongly peaked in small regions, and you know where those regions are, break the integral up into several 
+	regions so that the integrand is smooth in each, and do each separately.  If you don’t know where the strongly peaked regions
+	are, you might as well (at the level of sophistication of this book) quit: It is hopeless to expect an integration routine to 
+	search out unknown pockets of large contribution in a huge N-dimensional space."
+	
+	...But at least, it seems to shed a lot of light on what NP-Hard problems actually are. Just the sheer difficulty of solving this
+	equation brings together common difficulties from theoretical computer science, n-dimensional integrals, integrating 
+	nested powers (i.e. e^x^2), the curse of dimensionality, non-convex vs. convex optimizations, parallel vs. linear programming, 
+	finite precision and bit-encoding, etc.
+	
