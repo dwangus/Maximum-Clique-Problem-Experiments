@@ -1,4 +1,4 @@
-Imagine N points in N-1 dimensional space, all equidistant from one-another.
+﻿Imagine N points in N-1 dimensional space, all equidistant from one-another.
 
 Now, imagine that you are given a coordinate point within the region bounded by these equidistant N points.
 If that coordinate point lies at (approximately) the exact center of any subset of the equidistant N points,
@@ -193,3 +193,14 @@ instead, the "zero-out-and-flood" technique. (This was to be used with gradient 
 	nested powers (i.e. e^x^2), the curse of dimensionality, non-convex vs. convex optimizations, parallel vs. linear programming, 
 	finite precision and bit-encoding, etc.
 	
+	But all you need to do is check for the existence of a single peak...
+	
+"So the basic strategy for using EM is: think up some additional information which, if you had it, would make the problem solvable."
+
+(floor(n/(k-1))*(k-2)*((n%(k-1)) + floor(n/(k-1))*((k-1)/2)) + (n%(k-1))*((n%(k-1))-1)/2)/(n*(n-1)/2) is, for some graph of size n and
+for some clique of size k, the proportion of total possible edges (i.e. n*(n-1)/2) that can be inserted into the graph before a clique
+of size k is provably in the graph.
+Based on this, one could probably design some sort of statistical probabilistic guess at how likely, based on random samplings of the 
+graph's structure, that this "worst case" scenario has occurred (looking at how many possible permutations of this worst-case graph
+can occur, and comparing, relatively, the standard deviation of some probability distribution, the total possible number of ways that
+this specific arbitrary graph can occur, etc.).
